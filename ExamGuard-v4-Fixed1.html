@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<!-- Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<!-- html2pdf for PDF Download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KoesExamGuard — Sistem Ujian Online</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0b0f;--sf:#111318;--sf2:#181c24;--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
+  --tx:#f0f2f8;--mu:#6b7280;--mu2:#9ca3af;--ac:#4f8ef7;--gn:#10b981;--rd:#ef4444;--or:#f59e0b;--cy:#06b6d4;--pu:#7c3aed;
+  --fn:'Sora',sans-serif;--mo:'DM Mono',monospace;--r:10px;--r2:16px
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--fn);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:99px}
+.page{display:none;min-height:100vh;animation:fi .3s ease;}.page.active{display:flex;flex-direction:column}
+@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* ── LANDING ── */
+#landing{align-items:center;justify-content:center;position:relative;overflow:hidden}
+.lgrid{position:absolute;inset:0;background-image:linear-gradient(rgba(79,142,247,.04)1px,transparent 1px),linear-gradient(90deg,rgba(79,142,247,.04)1px,transparent 1px);background-size:48px 48px}
+.lglow{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,247,.12),transparent 70%);top:-100px;left:50%;transform:translateX(-50%)}
+.lglow2{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.1),transparent 70%);bottom:-50px;right:-100px}
+.lc{position:relative;z-index:1;text-align:center;max-width:680px;padding:3rem 2rem}
+.lbadge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid rgba(79,142,247,.3);border-radius:99px;font-size:12px;color:var(--ac);margin-bottom:2rem;background:rgba(79,142,247,.08);letter-spacing:.05em;text-transform:uppercase}
+.blink{width:6px;height:6px;border-radius:50%;background:var(--gn);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.ltitle{font-size:clamp(2.5rem,6vw,4.2rem);font-weight:700;line-height:1.1;letter-spacing:-.03em;margin-bottom:1.5rem}
+.ltitle span{background:linear-gradient(135deg,var(--ac),var(--cy));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lsub{font-size:1.05rem;color:var(--mu2);line-height:1.7;margin-bottom:3rem;font-weight:300}
+.lbtns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.lstats{display:flex;gap:48px;justify-content:center;margin-top:4rem;padding-top:3rem;border-top:1px solid var(--bd)}
+.lstat{text-align:center}.lsnum{font-size:2rem;font-weight:700}.lslbl{font-size:12px;color:var(--mu);margin-top:4px}
+.sync-dot{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--gn);margin-top:1rem}
+
+/* ── NAV ── */
+nav{background:rgba(10,11,15,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:200;flex-shrink:0}
+.nlogo{font-size:16px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;cursor:pointer}
+.nico{width:26px;height:26px;background:var(--ac);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.nlinks{display:flex;align-items:center;gap:8px}
+.nbtn{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fn);border:none;transition:all .15s}
+.ng{background:transparent;color:var(--mu2);border:1px solid transparent}.ng:hover{background:var(--sf2);color:var(--tx)}
+.rtbadge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;background:rgba(16,185,129,.1);color:var(--gn);border:1px solid rgba(16,185,129,.2)}
+
+/* ── PROFILE DROPDOWN ── */
+.pd-wrap{position:relative}
+.pd-btn{display:flex;align-items:center;gap:9px;padding:5px 11px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);cursor:pointer;color:var(--tx);font-family:var(--fn);transition:border-color .15s}
+.pd-btn:hover{border-color:var(--bd2)}
+.pd-caret{font-size:9px;color:var(--mu);transition:transform .2s}
+.pd-caret.open{transform:rotate(180deg)}
+.pd-menu{position:absolute;top:calc(100%+8px);right:0;background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r2);min-width:220px;box-shadow:0 20px 60px rgba(0,0,0,.6);z-index:300;display:none;overflow:hidden}
+.pd-menu.open{display:block;animation:fi .15s ease}
+.pd-hdr{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+.pd-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--cy));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.pd-name{font-size:14px;font-weight:600}.pd-role{font-size:11px;color:var(--mu);margin-top:2px}
+.pd-items{padding:6px}
+.pd-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--mu2);cursor:pointer;transition:all .15s;border:none;background:transparent;font-family:var(--fn);width:100%;text-align:left}
+.pd-item:hover{background:var(--sf2);color:var(--tx)}
+.pd-item.red{color:var(--rd)}.pd-item.red:hover{background:rgba(239,68,68,.08)}
+.pd-divider{border:none;border-top:1px solid var(--bd);margin:4px 0}
+
+/* ── LOGIN ── */
+#loginAdmin,#loginStudent{align-items:center;justify-content:center;position:relative;overflow:hidden}
+.lwrap{position:relative;z-index:1;width:100%;max-width:440px;padding:2rem}
+.lcard{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r2);padding:2.5rem;box-shadow:0 32px 80px rgba(0,0,0,.4)}
+.lico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 1.5rem}
+.lia{background:rgba(79,142,247,.15);border:1px solid rgba(79,142,247,.3)}
+.lis{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3)}
+.ltit{font-size:21px;font-weight:700;text-align:center;margin-bottom:.5rem;letter-spacing:-.02em}
+.lsub2{font-size:14px;color:var(--mu2);text-align:center;margin-bottom:2rem}
+.lhint{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 16px;margin-bottom:1.5rem;font-size:12px;color:var(--mu2);line-height:1.7}
+.lhint strong{color:var(--tx)}
+.pwrap{position:relative}
+.peye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--mu);cursor:pointer;font-size:14px}
+.emsg{font-size:12px;color:var(--rd);margin-top:5px;display:none}.emsg.show{display:block}
+.lback{text-align:center;margin-top:1.5rem;font-size:13px;color:var(--mu);cursor:pointer}.lback:hover{color:var(--tx)}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 18px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fn);border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{padding:13px 28px;background:var(--ac);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--fn);transition:all .2s}
+.btn-primary:hover{background:#3d7ce8;transform:translateY(-1px)}
+.btn-outline2{padding:13px 28px;background:transparent;color:var(--tx);border:1px solid var(--bd2);border-radius:var(--r);font-size:15px;font-weight:500;cursor:pointer;font-family:var(--fn);transition:all .2s}
+.btn-outline2:hover{background:var(--sf)}
+.btn-blue{background:var(--ac);color:#fff}.btn-blue:hover{background:#3d7ce8}
+.btn-green{background:var(--gn);color:#fff}.btn-green:hover{background:#059669}
+.btn-red{background:var(--rd);color:#fff}.btn-red:hover{background:#dc2626}
+.btn-ghost{background:var(--sf2);color:var(--mu2);border:1px solid var(--bd)}.btn-ghost:hover{color:var(--tx);border-color:var(--bd2)}
+.btn-dang{background:transparent;color:var(--rd);border:1px solid rgba(239,68,68,.3)}.btn-dang:hover{background:rgba(239,68,68,.1)}
+.btn-orange{background:var(--or);color:#fff}.btn-orange:hover{background:#d97706}
+.btn-sm{padding:5px 10px;font-size:11px}.btn-lg{padding:12px 28px;font-size:15px}
+.btn-full{width:100%;justify-content:center;padding:13px}
+button:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:230px 1fr;flex:1;min-height:0;overflow:hidden}
+.sidebar{background:var(--sf);border-right:1px solid var(--bd);padding:1.25rem 0;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.sb-sec{padding:0 .875rem;margin-bottom:.5rem}
+.sb-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin-bottom:8px;padding:0 8px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--mu2);transition:all .15s;border:none;background:transparent;font-family:var(--fn);width:100%;text-align:left}
+.sb-item:hover{background:var(--sf2);color:var(--tx)}
+.sb-item.active{background:rgba(79,142,247,.12);color:var(--ac);border:1px solid rgba(79,142,247,.15)}
+.sb-ico{font-size:15px;flex-shrink:0;width:18px;text-align:center}
+.sb-badge{margin-left:auto;background:var(--rd);color:#fff;border-radius:99px;font-size:10px;font-weight:700;padding:1px 6px;animation:pulse 1s infinite}
+.main{overflow-y:auto;background:var(--bg)}
+
+/* ── CONTENT ── */
+.content{padding:2rem;max-width:1100px}
+.phdr{margin-bottom:2rem}.phdr h2{font-size:21px;font-weight:700;letter-spacing:-.02em;margin-bottom:5px}.phdr p{font-size:13px;color:var(--mu2)}
+.bc{font-size:12px;color:var(--mu);margin-bottom:.75rem}.bc span{color:var(--mu2)}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);padding:1.5rem}
+.card-sm{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:1.25rem}
+.ctitle{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.04em}
+.scard{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:1.25rem;position:relative;overflow:hidden}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc-b::before{background:var(--ac)}.sc-g::before{background:var(--gn)}.sc-r::before{background:var(--rd)}.sc-o::before{background:var(--or)}.sc-p::before{background:var(--pu)}
+.slbl{font-size:11px;color:var(--mu);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.snum{font-size:26px;font-weight:700;letter-spacing:-.03em}.ssub{font-size:11px;color:var(--mu);margin-top:4px}
+
+/* ── TABLE ── */
+.twrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--sf2);padding:9px 13px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);border-bottom:1px solid var(--bd)}
+td{padding:11px 13px;border-bottom:1px solid var(--bd);color:var(--mu2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--sf2);color:var(--tx)}
+.tdp{color:var(--tx);font-weight:500}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.bg{background:rgba(16,185,129,.15);color:var(--gn);border:1px solid rgba(16,185,129,.2)}
+.br{background:rgba(239,68,68,.15);color:var(--rd);border:1px solid rgba(239,68,68,.2)}
+.bo{background:rgba(245,158,11,.15);color:var(--or);border:1px solid rgba(245,158,11,.2)}
+.bb{background:rgba(79,142,247,.15);color:var(--ac);border:1px solid rgba(79,142,247,.2)}
+.bp{background:rgba(124,58,237,.15);color:var(--pu);border:1px solid rgba(124,58,237,.2)}
+.bx{background:var(--sf2);color:var(--mu2);border:1px solid var(--bd)}
+.dp{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dpg{background:var(--gn);animation:pulse 2s infinite}.dpr{background:var(--rd)}.dpo{background:var(--or)}.dpx{background:var(--mu)}
+
+/* ── FORMS ── */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:1rem}
+.fl{font-size:11px;font-weight:600;color:var(--mu2);text-transform:uppercase;letter-spacing:.05em}
+.fi{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--r);padding:9px 13px;font-size:14px;color:var(--tx);font-family:var(--fn);outline:none;transition:border-color .15s;width:100%}
+.fi:focus{border-color:var(--ac)}.fi::placeholder{color:var(--mu)}.fi:disabled{opacity:.4;cursor:not-allowed}
+select.fi option{background:var(--sf)}
+textarea.fi{resize:vertical;min-height:80px;line-height:1.6}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+
+/* ── MODALS ── */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.mo.open{display:flex}
+.mbox{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r2);padding:2rem;max-width:520px;width:92%;max-height:88vh;overflow-y:auto;animation:mani .2s ease}
+.mbox-w{max-width:700px}
+@keyframes mani{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:none;}}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.mhdr h3{font-size:17px;font-weight:700;letter-spacing:-.02em}
+.mclose{background:var(--sf2);border:none;color:var(--mu2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}.mclose:hover{color:var(--tx)}
+.mtabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:1.5rem}
+.mtab{padding:8px 14px;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--mu);font-family:var(--fn);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.mtab.active{color:var(--ac);border-bottom-color:var(--ac);font-weight:500}
+.mtp{display:none}.mtp.active{display:block}
+
+/* ── ALERTS ── */
+.alert{padding:11px 15px;border-radius:var(--r);font-size:13px;display:flex;gap:10px;align-items:flex-start;margin-bottom:1rem}
+.alr{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
+.alo{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:#fcd34d}
+.alg{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#6ee7b7}
+.alb{background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);color:#93c5fd}
+
+/* ── TOAST ── */
+.tco{position:fixed;top:72px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.tst{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r);padding:11px 15px;font-size:13px;color:var(--tx);animation:tin .3s ease;display:flex;align-items:center;gap:9px;min-width:270px;pointer-events:all;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.tst.danger{border-left:3px solid var(--rd)}.tst.warning{border-left:3px solid var(--or)}.tst.success{border-left:3px solid var(--gn)}.tst.info{border-left:3px solid var(--ac)}
+@keyframes tin{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+
+/* ── RISK ── */
+.rbar{height:5px;background:var(--sf2);border-radius:99px;overflow:hidden}
+.rfill{height:100%;border-radius:99px;transition:width .5s}
+.rl{background:var(--gn)}.rm{background:var(--or)}.rh{background:var(--rd)}
+
+/* ── EXAM ── */
+.exam-layout{display:grid;grid-template-columns:1fr 300px;flex:1;min-height:0;overflow:hidden}
+.exam-main{padding:1.75rem;overflow-y:auto}
+.exam-side{background:var(--sf);border-left:1px solid var(--bd);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:1rem}
+.enav{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1.25rem}
+.qdot{width:34px;height:34px;border-radius:8px;border:1px solid var(--bd2);background:var(--sf);color:var(--mu2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--mo);transition:all .15s;display:flex;align-items:center;justify-content:center}
+.qdot:hover{border-color:var(--ac);color:var(--ac)}
+.qdot.qa{border-color:var(--ac);background:rgba(79,142,247,.1);color:var(--ac)}
+.qdot.qo{background:var(--gn);border-color:var(--gn);color:#fff}
+.qdot.qs{background:var(--or);border-color:var(--or);color:#fff}
+.qcard{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r2);padding:1.75rem;margin-bottom:1rem}
+.qmeta{display:flex;gap:8px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap}
+.qnum{font-size:11px;font-family:var(--mo);color:var(--mu);background:var(--sf2);padding:3px 9px;border-radius:6px}
+.qtopic{font-size:11px;color:var(--cy);background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.15);border-radius:99px;padding:3px 9px}
+.qtext{font-size:16px;line-height:1.7;margin-bottom:1.75rem}
+.qopts{display:flex;flex-direction:column;gap:9px}
+.qopt{display:flex;align-items:center;gap:13px;padding:13px 16px;border:1px solid var(--bd2);border-radius:var(--r);cursor:pointer;transition:all .15s;font-size:14px;color:var(--mu2);background:var(--sf2)}
+.qopt:hover{border-color:var(--ac);color:var(--tx);background:rgba(79,142,247,.05)}
+.qopt.sel{border-color:var(--ac);background:rgba(79,142,247,.1);color:var(--tx)}
+.qopt.ok{border-color:var(--gn);background:rgba(16,185,129,.1);color:var(--gn)}
+.qopt.wrong{border-color:var(--rd);background:rgba(239,68,68,.08);color:#fca5a5}
+.olet{width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mo);flex-shrink:0}
+
+/* ── CAMERA ── */
+.camv{background:#000;border-radius:var(--r);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border:1px solid var(--bd)}
+.camv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam-ol{position:absolute;inset:0;pointer-events:none}
+.cgrid{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr}
+.ccell{border:1px solid rgba(79,142,247,.12)}
+.cn{position:absolute;width:12px;height:12px;border-color:var(--ac);border-style:solid;opacity:.7}
+.ctl{top:7px;left:7px;border-width:2px 0 0 2px}.ctr{top:7px;right:7px;border-width:2px 2px 0 0}.cbl{bottom:7px;left:7px;border-width:0 0 2px 2px}.cbr{bottom:7px;right:7px;border-width:0 2px 2px 0}
+.clbl{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.6);padding:3px 9px;border-radius:5px;font-size:10px;font-family:var(--mo);color:var(--gn)}
+.crec{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.6);padding:3px 9px;border-radius:5px;font-size:10px;font-family:var(--mo);color:var(--rd)}
+.recdot{width:5px;height:5px;border-radius:50%;background:var(--rd);animation:pulse 1s infinite}
+.cam-ph{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--mu);font-size:11px;z-index:1}
+
+/* ── INCIDENT FEED ── */
+.iitem{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-radius:7px;background:var(--sf2);border-left:3px solid;font-size:11px;margin-bottom:3px}
+.ir{border-color:var(--rd)}.io{border-color:var(--or)}.ib{border-color:var(--ac)}
+.itime{color:var(--mu);font-family:var(--mo);flex-shrink:0;min-width:42px}
+.imsg{color:var(--mu2)}.imsg.crit{color:#fca5a5}.imsg.wrn{color:#fcd34d}
+
+/* ── CHEAT BOX ── */
+.cbgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cbox{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:9px 11px}
+.cbval{font-size:20px;font-weight:700;font-family:var(--mo)}
+.cblbl{font-size:10px;color:var(--mu);margin-top:2px}
+.albar{height:7px;background:var(--sf2);border-radius:99px;overflow:hidden;margin-top:5px}
+.alfill{height:100%;border-radius:99px;transition:width .5s}
+
+/* ── TOGGLE ── */
+.togrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bd)}
+.tog{width:40px;height:22px;border-radius:99px;transition:background .2s;border:1px solid var(--bd2);cursor:pointer;position:relative;flex-shrink:0}
+.tknob{position:absolute;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+
+/* ── RESULT ── */
+.rhero{text-align:center;padding:2.5rem 2rem;background:linear-gradient(to bottom,var(--sf),var(--bg))}
+.scircle{position:relative;display:inline-block;margin-bottom:1.25rem}
+.sring{width:150px;height:150px}
+.sinner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sval{font-size:38px;font-weight:800;letter-spacing:-.04em}.smax{font-size:13px;color:var(--mu)}
+.plive{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:500}
+.pl-ok{background:rgba(16,185,129,.1);color:var(--gn);border:1px solid rgba(16,185,129,.25)}
+.pl-warn{background:rgba(239,68,68,.1);color:var(--rd);border:1px solid rgba(239,68,68,.25)}
+
+/* ── REALTIME INDICATOR ── */
+.rt-pulse{display:inline-flex;align-items:center;gap:5px;font-size:11px}
+.rt-dot{width:7px;height:7px;border-radius:50%;background:var(--gn);animation:pulse 1.5s infinite}
+.rt-dot.off{background:var(--rd);animation:none}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;background:var(--sf2);color:var(--mu2);border:1px solid var(--bd)}
+.ai-report{background:var(--sf2);border:1px solid rgba(79,142,247,.2);border-radius:var(--r);padding:1.25rem;font-size:12px;line-height:1.8;color:var(--mu2);white-space:pre-wrap;font-family:var(--mo)}
+.ai-typing::after{content:'|';animation:blink2 .7s infinite}
+@keyframes blink2{0%,100%{opacity:1;}50%{opacity:0;}}
+.av-row{display:flex;align-items:center;gap:11px;padding:9px 11px;background:var(--sf2);border-radius:var(--r);border:1px solid var(--bd);margin-bottom:7px}
+.av-ico{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--cy));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.av-info{flex:1}.av-name{font-size:13px;font-weight:600;color:var(--tx)}.av-meta{font-size:11px;color:var(--mu);margin-top:2px}
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:1rem;color:var(--mu)}
+.spinner{width:32px;height:32px;border:3px solid var(--bd2);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.g3,.g4{grid-template-columns:1fr 1fr;}.exam-layout{grid-template-columns:1fr;}.exam-side{display:none;}}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr;}.lbtns{flex-direction:column;align-items:center;}.lstats{gap:24px;}}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="spinner"></div>
+  <div style="font-size:14px">Menghubungkan ke server...</div>
+</div>
+
+<div class="tco" id="tc"></div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+<div class="mo" id="moConfirm">
+  <div class="mbox" style="max-width:380px">
+    <div class="mhdr"><h3 id="mcTitle">Konfirmasi</h3><button class="mclose" onclick="cm('moConfirm')">✕</button></div>
+    <p id="mcMsg" style="font-size:14px;color:var(--mu2);margin-bottom:1.5rem;line-height:1.6"></p>
+    <div style="display:flex;gap:8px"><button class="btn btn-ghost" style="flex:1" onclick="cm('moConfirm')">Batal</button><button class="btn btn-red" style="flex:1" id="mcBtn">Konfirmasi</button></div>
+  </div>
+</div>
+
+<div class="mo" id="moOTP">
+  <div class="mbox" style="max-width:380px">
+    <div class="mhdr"><h3 id="moOTPTitle">Verifikasi Login</h3><button class="mclose" onclick="cm('moOTP')">✕</button></div>
+    <p style="font-size:13px;color:var(--mu2);margin-bottom:1rem">Kode OTP telah dikirimkan ke perangkat/email Anda. (Untuk demo, masukkan <strong>123456</strong>)</p>
+    <div class="fg"><label class="fl">Kode OTP</label><input class="fi" id="otpInput" type="text" placeholder="123456" style="letter-spacing:4px;font-size:20px;text-align:center" onkeydown="if(event.key==='Enter')verifyOTP()"/></div>
+    <button class="btn btn-blue btn-full" onclick="verifyOTP()">Verifikasi & Masuk</button>
+  </div>
+</div>
+
+<div class="mo" id="moDetail">
+  <div class="mbox mbox-w"><div class="mhdr"><h3 id="mdTitle">Detail</h3><button class="mclose" onclick="cm('moDetail')">✕</button></div><div id="mdBody"></div></div>
+</div>
+
+<div class="mo" id="moEditSoal">
+  <div class="mbox"><div class="mhdr"><h3>Edit Soal</h3><button class="mclose" onclick="cm('moEditSoal')">✕</button></div><div id="meditSoalBody"></div></div>
+</div>
+
+<div class="mo" id="moAddSoal">
+  <div class="mbox">
+    <div class="mhdr"><h3>Tambah Soal Baru</h3><button class="mclose" onclick="cm('moAddSoal')">✕</button></div>
+    <div class="fg"><label class="fl">Teks Soal</label><textarea class="fi" id="nqtext" placeholder="Tulis pertanyaan..."></textarea></div>
+    <div class="g2">
+      <div class="fg"><label class="fl">Topik</label><select class="fi" id="nqtopic"><option>Matematika</option><option>IPA</option><option>Sejarah</option><option>Geografi</option><option>Bahasa Inggris</option><option>Sastra</option><option>Lainnya</option></select></div>
+      <div class="fg"><label class="fl">Kesulitan</label><select class="fi" id="nqdiff"><option value="mudah">Mudah</option><option value="sedang" selected>Sedang</option><option value="sulit">Sulit</option></select></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label class="fl">Pilihan A</label><input class="fi" id="nqo0" placeholder="Opsi A..."/></div>
+      <div class="fg"><label class="fl">Pilihan B</label><input class="fi" id="nqo1" placeholder="Opsi B..."/></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label class="fl">Pilihan C</label><input class="fi" id="nqo2" placeholder="Opsi C..."/></div>
+      <div class="fg"><label class="fl">Pilihan D</label><input class="fi" id="nqo3" placeholder="Opsi D..."/></div>
+    </div>
+    <div class="fg"><label class="fl">Jawaban Benar</label><select class="fi" id="nqans"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div>
+    <button class="btn btn-blue btn-full" onclick="saveSoal()">Simpan Soal</button>
+  </div>
+</div>
+
+<div class="mo" id="moPeserta">
+  <div class="mbox">
+    <div class="mhdr"><h3 id="mPesTitle">Tambah Peserta</h3><button class="mclose" onclick="cm('moPeserta')">✕</button></div>
+    <div id="mPesBody"></div>
+  </div>
+</div>
+
+<div class="mo" id="moProfil">
+  <div class="mbox mbox-w">
+    <div class="mhdr"><h3>Pengaturan Akun</h3><button class="mclose" onclick="cm('moProfil')">✕</button></div>
+    <div class="mtabs">
+      <button class="mtab active" onclick="mTab(this,'mpEdit')">Edit Profil</button>
+      <button class="mtab" onclick="mTab(this,'mpPass')">Ganti Password</button>
+      <button class="mtab" onclick="mTab(this,'mpAdmin')">Kelola Admin</button>
+      <button class="mtab" onclick="mTab(this,'mpNew')">+ Tambah Akun</button>
+    </div>
+    <div class="mtp active" id="mpEdit">
+      <div style="display:flex;align-items:center;gap:13px;margin-bottom:1.5rem;padding:13px;background:var(--sf2);border-radius:var(--r)">
+        <div id="epAv" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--cy));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0"></div>
+        <div><div id="epCurName" style="font-size:15px;font-weight:600"></div><div id="epCurRole" style="font-size:12px;color:var(--mu);margin-top:2px"></div></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="fl">Nama Tampilan</label><input class="fi" id="epName" placeholder="Nama lengkap..."/></div>
+        <div class="fg"><label class="fl">Jabatan</label><input class="fi" id="epRole" placeholder="Jabatan/role..."/></div>
+      </div>
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="epUser" disabled/></div>
+      <button class="btn btn-blue" onclick="saveEditProfil()">Simpan Profil</button>
+    </div>
+    <div class="mtp" id="mpPass">
+      <div class="alert alb" style="margin-bottom:1.5rem"><span>ℹ</span><span>Perubahan password berlaku saat login berikutnya.</span></div>
+      <div class="fg"><label class="fl">Password Saat Ini</label><div class="pwrap"><input class="fi" id="ppOld" type="password" style="padding-right:42px"/><button class="peye" onclick="tpwd('ppOld',this)">👁</button></div></div>
+      <div class="fg"><label class="fl">Password Baru</label><div class="pwrap"><input class="fi" id="ppNew" type="password" style="padding-right:42px"/><button class="peye" onclick="tpwd('ppNew',this)">👁</button></div></div>
+      <div class="fg"><label class="fl">Konfirmasi Password Baru</label><div class="pwrap"><input class="fi" id="ppConf" type="password" style="padding-right:42px"/><button class="peye" onclick="tpwd('ppConf',this)">👁</button></div><div class="emsg" id="ppErr">Password tidak cocok.</div></div>
+      <button class="btn btn-blue" onclick="savePass()">Ganti Password</button>
+    </div>
+    <div class="mtp" id="mpAdmin"><div id="adminListBody"></div></div>
+    <div class="mtp" id="mpNew">
+      <div class="fg"><label class="fl">Username</label><input class="fi" id="naUser" placeholder="huruf kecil tanpa spasi..."/></div>
+      <div class="g2">
+        <div class="fg"><label class="fl">Nama Tampilan</label><input class="fi" id="naName" placeholder="Nama lengkap..."/></div>
+        <div class="fg"><label class="fl">Jabatan</label><select class="fi" id="naRole"><option value="Admin">Admin</option><option value="Pengawas">Pengawas</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Password</label><div class="pwrap"><input class="fi" id="naPass" type="password" style="padding-right:42px"/><button class="peye" onclick="tpwd('naPass',this)">👁</button></div></div>
+      <button class="btn btn-blue" onclick="tambahAdmin()">Tambah Admin</button>
+    </div>
+  </div>
+</div>
+
+<div class="mo" id="moEditAdmin">
+  <div class="mbox" style="max-width:440px">
+    <div class="mhdr"><h3>Edit Akun Admin</h3><button class="mclose" onclick="cm('moEditAdmin')">✕</button></div>
+    <div id="editAdminBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════ LANDING ═══════════ -->
+<div id="landing" class="page">
+  <div class="lgrid"></div><div class="lglow"></div><div class="lglow2"></div>
+  <div class="lc">
+    <div class="lbadge"><div class="blink"></div><span id="rtStatus">Menghubungkan...</span></div>
+    <div class="ltitle"><span id="landTitle">KoesExamGuard</span><br><span>Sistem Ujian</span><br>Online Terpadu</div>
+    <div class="lsub">Platform ujian real-time multi-pengguna — semua data tersinkronisasi otomatis, monitor kecurangan langsung dari browser manapun.</div>
+    <div class="lbtns">
+      <button class="btn-primary" onclick="showPage('loginStudent')">Masuk sebagai Peserta →</button>
+      <button class="btn-outline2" onclick="showPage('loginPengawas')">Portal Pengawas</button>
+    </div>
+    <div class="lstats">
+      <div class="lstat"><div class="lsnum" id="ls1">—</div><div class="lslbl">Peserta Terdaftar</div></div>
+      <div class="lstat"><div class="lsnum" id="ls2">—</div><div class="lslbl">Ujian Selesai</div></div>
+      <div class="lstat"><div class="lsnum" id="ls3">—</div><div class="lslbl">Insiden Terdeteksi</div></div>
+    </div>
+    <div class="sync-dot" id="syncInfo" style="justify-content:center"><div class="rt-dot" id="rtDot"></div><span id="rtLabel">Tersambung ke database</span></div>
+    <div style="margin-top:25px; text-align:center;">
+      <a href="#" onclick="showPage('loginAdmin')" style="color:var(--mu2);font-size:12px;text-decoration:none;opacity:0.75;">🔒 Akses Administrator Utama</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ LOGIN ADMIN ═══════════ -->
+<div id="loginAdmin" class="page">
+  <nav><div class="nlogo" onclick="showPage('landing')"><div class="nico">⚡</div><span id="navBrandA">KoesExamGuard</span></div><div class="nlinks"><button class="nbtn ng" onclick="showPage('landing')">← Kembali</button></div></nav>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+    <div class="lglow" style="opacity:.5"></div>
+    <div class="lwrap">
+      <div class="lcard">
+        <div class="lico lia">🛡</div>
+        <div class="ltit">Login Admin</div>
+        <div class="lsub2">Akses penuh keamanan sistem CBT</div>
+        <div class="fg"><label class="fl">Username</label><input class="fi" id="auser" placeholder="Username..." onkeydown="if(event.key==='Enter')doAdminLogin()"/></div>
+        <div class="fg"><label class="fl">Password</label><div class="pwrap"><input class="fi" id="apass" type="password" placeholder="Password..." style="padding-right:42px" onkeydown="if(event.key==='Enter')doAdminLogin()"/><button class="peye" onclick="tpwd('apass',this)">👁</button></div><div class="emsg" id="aerr">Akses ditolak.</div></div>
+        <button class="btn btn-blue btn-full" onclick="doAdminLogin()">Masuk →</button>
+        <div class="lback" onclick="showPage('landing')">← Kembali ke beranda</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ LOGIN PENGAWAS ═══════════ -->
+<div id="loginPengawas" class="page">
+  <nav><div class="nlogo" onclick="showPage('landing')"><div class="nico">⚡</div><span id="navBrandP">KoesExamGuard</span></div><div class="nlinks"><button class="nbtn ng" onclick="showPage('landing')">← Kembali</button></div></nav>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+    <div class="lglow" style="opacity:.5"></div>
+    <div class="lwrap">
+      <div class="lcard">
+        <div class="lico lia">👁</div>
+        <div class="ltit">Login Pengawas</div>
+        <div class="lsub2">Akses panel monitoring real-time ujian</div>
+        <div class="fg"><label class="fl">Username Pengawas</label><input class="fi" id="puser" placeholder="Username..." onkeydown="if(event.key==='Enter')doPengawasLogin()"/></div>
+        <div class="fg"><label class="fl">Password</label><div class="pwrap"><input class="fi" id="ppassL" type="password" placeholder="Password..." style="padding-right:42px" onkeydown="if(event.key==='Enter')doPengawasLogin()"/><button class="peye" onclick="tpwd('ppassL',this)">👁</button></div><div class="emsg" id="perr">Akses ditolak.</div></div>
+        <button class="btn btn-blue btn-full" onclick="doPengawasLogin()">Masuk →</button>
+        <div class="lback" onclick="showPage('landing')">← Kembali ke beranda</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ LOGIN STUDENT ═══════════ -->
+<div id="loginStudent" class="page">
+  <nav><div class="nlogo" onclick="showPage('landing')"><div class="nico">⚡</div><span id="navBrandS">KoesExamGuard</span></div><div class="nlinks"><button class="nbtn ng" onclick="showPage('landing')">← Kembali</button></div></nav>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+    <div class="lglow2" style="opacity:.5;top:auto;bottom:-50px;left:50%;transform:translateX(-50%)"></div>
+    <div class="lwrap">
+      <div class="lcard">
+        <div class="lico lis">📝</div>
+        <div class="ltit">Login Peserta Ujian</div>
+        <div class="lsub2">Masukkan nomor peserta & password untuk mulai ujian</div>
+        <div class="fg"><label class="fl">Nomor Peserta</label><input class="fi" id="suser" placeholder="contoh: 2024-001" onkeydown="if(event.key==='Enter')doStudentLogin()"/></div>
+        <div class="fg"><label class="fl">Password</label><div class="pwrap"><input class="fi" id="spass" type="password" placeholder="Password ujian..." style="padding-right:42px" onkeydown="if(event.key==='Enter')doStudentLogin()"/><button class="peye" onclick="tpwd('spass',this)">👁</button></div><div class="emsg" id="serr">Nomor peserta atau password salah.</div></div>
+        <div class="alert alb"><span>ℹ</span><span>Kamera dan aktivitas Anda akan dipantau selama ujian.</span></div>
+        <button class="btn btn-green btn-full" onclick="doStudentLogin()">Mulai Ujian →</button>
+        <div class="lback" onclick="showPage('landing')">← Kembali ke beranda</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ADMIN ═══════════ -->
+<div id="admin" class="page">
+  <nav>
+    <div class="nlogo" onclick="showPage('landing')"><div class="nico">⚡</div><span id="navBrand">KoesExamGuard</span></div>
+    <div class="nlinks">
+      <div class="rtbadge"><div class="rt-dot" id="navRtDot"></div><span id="navRtLabel">Real-time</span></div>
+      <div class="pd-wrap" id="pdWrap">
+        <button class="pd-btn" onclick="togglePd()">
+          <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--cy));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700" id="navAv">AD</div>
+          <div><div style="font-size:13px;font-weight:500" id="navName">Administrator</div><div style="font-size:10px;color:var(--mu)" id="navRole">Superadmin</div></div>
+          <span class="pd-caret" id="pdCaret">▼</span>
+        </button>
+        <div class="pd-menu" id="pdMenu">
+          <div class="pd-hdr"><div class="pd-av" id="pdAv">AD</div><div><div class="pd-name" id="pdName">Administrator</div><div class="pd-role" id="pdRole">Superadmin</div></div></div>
+          <div class="pd-items">
+            <button class="pd-item" onclick="closePd();openProfil('mpEdit')">✏ Edit Profil & Nama</button>
+            <button class="pd-item" onclick="closePd();openProfil('mpPass')">🔑 Ganti Password</button>
+            <button class="pd-item" onclick="closePd();openProfil('mpAdmin')">👥 Kelola Admin</button>
+            <button class="pd-item" onclick="closePd();anav(el('sb-aSet'),'aSet')">⚙ Pengaturan</button>
+            <hr class="pd-divider"/><button class="pd-item red" onclick="closePd();logoutAdmin()">↩ Keluar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sb-sec">
+        <div class="sb-lbl">Utama</div>
+        <button class="sb-item active" id="sb-aDash" onclick="anav(this,'aDash')"><div class="sb-ico">⊞</div>Dashboard</button>
+        <button class="sb-item" id="sb-aMon" onclick="anav(this,'aMon')"><div class="sb-ico">◉</div>Monitor Live<div class="sb-badge" id="lbadge">0</div></button>
+        <button class="sb-item" id="sb-aRes" onclick="anav(this,'aRes')"><div class="sb-ico">✦</div>Hasil & Nilai</button>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-lbl">Manajemen</div>
+        <button class="sb-item" id="sb-aSoal" onclick="anav(this,'aSoal')"><div class="sb-ico">◧</div>Bank Soal</button>
+        <button class="sb-item" id="sb-aPes" onclick="anav(this,'aPes')"><div class="sb-ico">◎</div>Peserta</button>
+        <button class="sb-item" id="sb-aRep" onclick="anav(this,'aRep')"><div class="sb-ico">◈</div>Laporan AI</button>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-lbl">Sistem</div>
+        <button class="sb-item" id="sb-aSet" onclick="anav(this,'aSet')"><div class="sb-ico">⚙</div>Pengaturan</button>
+      </div>
+    </div>
+    <div class="main">
+      <div id="aDash" class="content apanel"></div>
+      <div id="aMon" class="content apanel" style="display:none"></div>
+      <div id="aRes" class="content apanel" style="display:none"></div>
+      <div id="aSoal" class="content apanel" style="display:none"></div>
+      <div id="aPes" class="content apanel" style="display:none"></div>
+      <div id="aRep" class="content apanel" style="display:none"></div>
+      <div id="aSet" class="content apanel" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ EXAM ═══════════ -->
+<div id="exam" class="page">
+  <nav><div class="nlogo"><div class="nico">⚡</div><span id="navBrandE">KoesExamGuard</span></div><div class="nlinks" id="examNav"></div></nav>
+  <div class="exam-layout">
+    <div class="exam-main" id="examMain"></div>
+    <div class="exam-side" id="examSide"></div>
+  </div>
+</div>
+
+<!-- ═══════════ RESULT ═══════════ -->
+<div id="result" class="page">
+  <nav><div class="nlogo" onclick="showPage('landing')"><div class="nico">⚡</div><span id="navBrandR">KoesExamGuard</span></div><div class="nlinks"><button class="nbtn ng" onclick="showPage('landing')">← Beranda</button></div></nav>
+  <div id="resultBody" style="overflow-y:auto;flex:1"></div>
+</div>
+
+<!-- ═══════════ APP SCRIPT (localStorage mode + Firebase opsional) ═══════════ -->
+<script>
+// ╔══════════════════════════════════════════════════════════════════════╗
+// ║  EXAMGUARD — MODE LOKAL (localStorage) — SIAP PAKAI TANPA FIREBASE  ║
+// ║  Untuk aktifkan Firebase: isi firebaseConfig di bawah, lalu reload   ║
+// ╚══════════════════════════════════════════════════════════════════════╝
+
+// ── FIREBASE CONFIG (WAJIB DIISI UNTUK REAL-TIME) ───────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCKpuih-5du4vSzJLs5DwCk1FZRnnQk60c", // GANTI INI DENGAN API KEY ANDA "AIzaSy..."
+  authDomain: "koesexamguard-eaa47.firebaseapp.com",
+  databaseURL: "https://koesexamguard-eaa47-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koesexamguard-eaa47",
+  storageBucket: "koesexamguard-eaa47.appspot.com",
+  messagingSenderId: "975699300167",
+  appId: "1:975699300167:web:f1a76d53473f8d5d0b8662"
+};
+const USE_FIREBASE = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('ISI_API');
+
+// ── STORAGE KEY ──────────────────────────────────────────────────────────
+const LS_KEY = 'examguard_v4_db';
+
+const firebaseConfig = FIREBASE_CONFIG; // placeholder agar kode lama compatible
+
+// Data default (diinisialisasi sekali ke Firebase jika belum ada)
+const DEFAULT_DATA = {
+  settings: {brand:'KoesExamGuard',examDuration:20,maxRisk:70,autoFlag:true,camRequired:true},
+  admins: {
+    admin: {name:'Administrator',password:'admin123',role:'Superadmin'},
+    pengawas: {name:'Bpk. Wahyu',password:'watch456',role:'Pengawas'},
+  },
+  students: {
+    's2024001': {id:'2024-001',name:'Budi Santoso',kelas:'9A',password:'budi123',status:'selesai',score:85,risk:8,incidents:1,duration:'18:42',flagged:false},
+    's2024002': {id:'2024-002',name:'Siti Rahayu',kelas:'9A',password:'siti456',status:'selesai',score:72,risk:55,incidents:12,duration:'16:30',flagged:true},
+    's2024003': {id:'2024-003',name:'Ahmad Fajar',kelas:'9B',password:'ahmad789',status:'selesai',score:90,risk:3,incidents:0,duration:'20:01',flagged:false},
+    's2024004': {id:'2024-004',name:'Dewi Lestari',kelas:'9B',password:'dewi321',status:'belum',score:null,risk:0,incidents:0,duration:null,flagged:false},
+    's2024005': {id:'2024-005',name:'Reza Pratama',kelas:'9C',password:'reza654',status:'berlangsung',score:null,risk:78,incidents:21,duration:null,flagged:true},
+    's2024006': {id:'2024-006',name:'Fitri Handayani',kelas:'9C',password:'fitri987',status:'belum',score:null,risk:0,incidents:0,duration:null,flagged:false},
+  },
+  questions: {
+    'q1': {id:'q1',text:'Berapakah hasil dari 15 × 8 + 12 ÷ 4?',options:['A. 120','B. 123','C. 128','D. 115'],correct:1,topic:'Matematika',difficulty:'sedang'},
+    'q2': {id:'q2',text:'Siapakah proklamator kemerdekaan Indonesia?',options:['A. Soeharto & Try Sutrisno','B. Soekarno & Hatta','C. Soekarno & Sjahrir','D. Hatta & Sjahrir'],correct:1,topic:'Sejarah',difficulty:'mudah'},
+    'q3': {id:'q3',text:'Gas apa yang dihasilkan tanaman saat fotosintesis?',options:['A. Karbon dioksida','B. Nitrogen','C. Oksigen','D. Hidrogen'],correct:2,topic:'IPA',difficulty:'mudah'},
+    'q4': {id:'q4',text:'Berapa sudut dalam segitiga sama sisi?',options:['A. 45°','B. 90°','C. 60°','D. 30°'],correct:2,topic:'Matematika',difficulty:'mudah'},
+    'q5': {id:'q5',text:'Apa ibu kota negara Jepang?',options:['A. Osaka','B. Kyoto','C. Hiroshima','D. Tokyo'],correct:3,topic:'Geografi',difficulty:'mudah'},
+    'q6': {id:'q6',text:'Manakah planet terbesar di tata surya?',options:['A. Saturnus','B. Jupiter','C. Neptunus','D. Uranus'],correct:1,topic:'IPA',difficulty:'sedang'},
+    'q7': {id:'q7',text:'Dalam bahasa Inggris, "buku" diterjemahkan menjadi?',options:['A. Chair','B. Table','C. Book','D. Pen'],correct:2,topic:'Bahasa Inggris',difficulty:'mudah'},
+    'q8': {id:'q8',text:'Berapakah akar kuadrat dari 144?',options:['A. 11','B. 12','C. 13','D. 14'],correct:1,topic:'Matematika',difficulty:'sedang'},
+    'q9': {id:'q9',text:'Apa nama senyawa kimia untuk air?',options:['A. CO₂','B. NaCl','C. H₂O','D. O₂'],correct:2,topic:'IPA',difficulty:'mudah'},
+    'q10': {id:'q10',text:'Siapa penulis novel "Laskar Pelangi"?',options:['A. Pramoedya Ananta Toer','B. Andrea Hirata','C. Habiburrahman El Shirazy','D. Chairil Anwar'],correct:1,topic:'Sastra',difficulty:'sedang'},
+    'q11': {id:'q11',text:'Berapakah nilai dari 2³ × 5?',options:['A. 30','B. 40','C. 25','D. 50'],correct:1,topic:'Matematika',difficulty:'sulit'},
+    'q12': {id:'q12',text:'Proses pembelahan sel menghasilkan 2 sel anak identik?',options:['A. Meiosis','B. Mitosis','C. Osmosis','D. Difusi'],correct:1,topic:'IPA',difficulty:'sulit'},
+  },
+  incidents: {}
+};
+
+// ────────────────────────────────
+// INISIALISASI (Real-time Firebase / LocalStorage fallback)
+// ────────────────────────────────
+let app = null, db = null, isConnected = false;
+let fbActive = USE_FIREBASE;
+let cache = {settings:{},admins:{},students:{},questions:{},incidents:{}};
+const listeners = [];
+
+function loadFromLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      ['settings','admins','students','questions','incidents'].forEach(k => {
+        if (saved[k] && Object.keys(saved[k]).length > 0) cache[k] = saved[k];
+        else cache[k] = JSON.parse(JSON.stringify(DEFAULT_DATA[k] || {}));
+      });
+    } else {
+      Object.assign(cache, JSON.parse(JSON.stringify(DEFAULT_DATA)));
+      saveToLS();
+    }
+  } catch(e) {
+    Object.assign(cache, JSON.parse(JSON.stringify(DEFAULT_DATA)));
+  }
+}
+
+function saveToLS() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(cache)); } catch(e) {}
+}
+
+window.addEventListener('storage', (e) => {
+  if (e.key !== LS_KEY) return;
+  try {
+    const saved = JSON.parse(e.newValue);
+    ['settings','admins','students','questions','incidents'].forEach(k => {
+      if (saved[k]) cache[k] = saved[k];
+    });
+    const currentPanel = document.querySelector('.apanel[style*="block"]');
+    if (currentPanel) {
+      const fn = {aDash:rDash,aMon:rMon,aRes:rRes,aSoal:rSoal,aPes:rPes,aRep:rRep,aSet:rSet};
+      if (fn[currentPanel.id]) fn[currentPanel.id]();
+    }
+    updateLandingStats();
+  } catch(e) {}
+});
+
+function fallbackToLocal() {
+  fbActive = false;
+  loadFromLS();
+  isConnected = true;
+  setRtStatus(true, 'localStorage');
+  setTimeout(() => {
+    if(el('loadingScreen')) el('loadingScreen').style.display = 'none';
+    showPage('landing');
+    updateLandingStats();
+  }, 500);
+}
+
+if (USE_FIREBASE) {
+  try {
+    app = firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    
+    let fbTimeout = setTimeout(() => {
+      if(!isConnected) { console.warn("Firebase timeout"); fallbackToLocal(); }
+    }, 4500);
+
+    db.ref().on('value', (snapshot) => {
+      clearTimeout(fbTimeout);
+      const data = snapshot.val();
+      if (data) {
+        ['settings','admins','students','questions','incidents'].forEach(k => {
+          if (data[k]) cache[k] = data[k];
+          else cache[k] = JSON.parse(JSON.stringify(DEFAULT_DATA[k] || {}));
+        });
+        saveToLS(); 
+        
+        const currentPanel = document.querySelector('.apanel[style*="block"]');
+        if (currentPanel) {
+          const fn = {aDash:rDash,aMon:rMon,aRes:rRes,aSoal:rSoal,aPes:rPes,aRep:rRep,aSet:rSet};
+          if (fn[currentPanel.id]) fn[currentPanel.id]();
+        }
+        updateLandingStats();
+        if (typeof updateLiveBadge === 'function') updateLiveBadge();
+      } else {
+        db.ref().set(DEFAULT_DATA);
+      }
+      
+      if (!isConnected) {
+        isConnected = true;
+        setRtStatus(true, 'firebase');
+        if (el('loadingScreen')) el('loadingScreen').style.display = 'none';
+        showPage('landing');
+        updateLandingStats();
+      }
+    });
+
+    setRtStatus(false, 'firebase'); 
+
+  } catch (error) {
+    console.error("Firebase Error: ", error);
+    fallbackToLocal();
+  }
+} else {
+  fallbackToLocal();
+}
+
+function onDataUpdate(path) {
+  if (!el('aDash')) return;
+  const currentPanel = document.querySelector('.apanel[style*="block"]');
+  if (!currentPanel) return;
+  const id = currentPanel.id;
+  const fn = {aDash:rDash,aMon:rMon,aRes:rRes,aSoal:rSoal,aPes:rPes,aRep:rRep,aSet:rSet};
+  const relevantMap = {
+    students: ['aDash','aMon','aRes','aPes','aRep'],
+    questions: ['aSoal'],
+    incidents: ['aMon','aRep'],
+    admins: ['aSet'],
+    settings: ['aSet']
+  };
+  if (relevantMap[path]?.includes(id) && fn[id]) fn[id]();
+  updateLandingStats();
+  if (id === 'aMon' && typeof updateLiveBadge === 'function') updateLiveBadge();
+}
+
+// ────────────────────────────────
+// DB HELPERS
+// ────────────────────────────────
+function dbSet(path, val) {
+  if (USE_FIREBASE && db && fbActive) {
+    return db.ref(path).set(val);
+  } else {
+    const parts = path.split('/');
+    let obj = cache;
+    for (let i = 0; i < parts.length - 1; i++) {
+        if (!obj[parts[i]]) obj[parts[i]] = {};
+        obj = obj[parts[i]];
+    }
+    obj[parts[parts.length - 1]] = val;
+    saveToLS();
+    if (typeof onDataUpdate === 'function') onDataUpdate(parts[0]);
+    return Promise.resolve();
+  }
+}
+
+function dbUpdate(path, val) {
+  if (USE_FIREBASE && db && fbActive) {
+    return db.ref(path).update(val);
+  } else {
+    const parts = path.split('/');
+    let obj = cache;
+    for (let i = 0; i < parts.length - 1; i++) {
+        if (!obj[parts[i]]) obj[parts[i]] = {};
+        obj = obj[parts[i]];
+    }
+    const key = parts[parts.length - 1];
+    if (!obj[key]) obj[key] = {};
+    if (typeof obj[key] === 'object' && obj[key] !== null) Object.assign(obj[key], val);
+    else obj[key] = val;
+    saveToLS();
+    if (typeof onDataUpdate === 'function') onDataUpdate(parts[0]);
+    return Promise.resolve();
+  }
+}
+
+function dbRemove(path) {
+  if (USE_FIREBASE && db && fbActive) {
+    return db.ref(path).remove();
+  } else {
+    const parts = path.split('/');
+    let obj = cache;
+    for (let i = 0; i < parts.length - 1; i++) {
+        if (!obj[parts[i]]) return Promise.resolve();
+        obj = obj[parts[i]];
+    }
+    delete obj[parts[parts.length - 1]];
+    saveToLS();
+    if (typeof onDataUpdate === 'function') onDataUpdate(parts[0]);
+    return Promise.resolve();
+  }
+}
+
+function dbPush(path, val) {
+  if (USE_FIREBASE && db && fbActive) {
+    const newRef = db.ref(path).push();
+    return newRef.set(val).then(() => ({ key: newRef.key }));
+  } else {
+    const key = 'k' + Date.now() + Math.random().toString(36).slice(2,6);
+    return dbSet(path + '/' + key, val).then(() => ({key}));
+  }
+}
+
+// ────────────────────────────────
+// HELPERS
+// ────────────────────────────────
+function el(id) { return document.getElementById(id); }
+function fmt(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+function ini(name) { return (name||'').split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2)||'??'; }
+function stu2arr() { return Object.entries(cache.students||{}).map(([k,v])=>({...v,_key:k})); }
+function q2arr() { return Object.entries(cache.questions||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.id.localeCompare(b.id)); }
+function inc2arr() { return Object.entries(cache.incidents||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts||0); }
+function getRisk(r){if(r>=70)return{label:'Sangat Tinggi',cls:'r',color:'var(--rd)'};if(r>=40)return{label:'Tinggi',cls:'o',color:'var(--or)'};if(r>=15)return{label:'Sedang',cls:'b',color:'var(--ac)'};return{label:'Rendah',cls:'g',color:'var(--gn)'};}
+function getGrade(p){if(p>=90)return{g:'A',l:'Sangat Baik',c:'g'};if(p>=80)return{g:'B',l:'Baik',c:'b'};if(p>=70)return{g:'C',l:'Cukup',c:'o'};if(p>=60)return{g:'D',l:'Kurang',c:'o'};return{g:'E',l:'Tidak Lulus',c:'r'};}
+function tpwd(id,btn){const f=el(id);f.type=f.type==='password'?'text':'password';btn.textContent=f.type==='password'?'👁':'🙈';}
+function setRtStatus(on, mode) {
+  ['rtDot','navRtDot'].forEach(id=>{const e=el(id);if(e){e.classList.toggle('off',!on);}});
+  const lsMode = !USE_FIREBASE;
+  const s=el('rtStatus');if(s)s.textContent=on?(lsMode?'Mode Lokal Aktif':'Tersambung real-time'):'Offline — mode lokal';
+  const l=el('rtLabel');if(l)l.textContent=on?(lsMode?'Lokal':'Real-time aktif'):'Offline';
+  const nb=el('navRtLabel');if(nb)nb.textContent=on?(lsMode?'Lokal':'Real-time'):'Offline';
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el(id).classList.add('active');
+  if(id==='landing')updateLandingStats();
+  if(id==='loginAdmin')refreshAdminHint();
+  if(id==='loginStudent')refreshStuHint();
+  syncBrands();
+}
+function syncBrands(){
+  const b=(cache.settings?.brand)||'KoesExamGuard';
+  ['navBrand','navBrandA','navBrandS','navBrandE','navBrandR','landTitle'].forEach(id=>{const e=el(id);if(e)e.textContent=b;});
+  document.title=b+' — Sistem Ujian Online';
+}
+function om(id){el(id).classList.add('open')}
+function cm(id){el(id).classList.remove('open')}
+
+function toast(msg,type='success'){
+  const t=document.createElement('div');t.className=`tst ${type}`;
+  const ico = type==='danger'?'⚠':type==='warning'?'⚠':type==='info'?'ℹ':'✓';
+  t.innerHTML=`<span>${ico}</span><span>${msg}</span>`;
+  el('tc').appendChild(t);setTimeout(()=>t.style.opacity='0',3500);setTimeout(()=>t.remove(),4000);
+}
+function confirm2(title,msg,cb){el('mcTitle').textContent=title;el('mcMsg').textContent=msg;el('mcBtn').onclick=()=>{cm('moConfirm');cb();};om('moConfirm');}
+
+function updateLandingStats(){
+  const arr=stu2arr();
+  const done=arr.filter(s=>s.status==='selesai').length;
+  const inc=arr.reduce((a,s)=>a+(s.incidents||0),0);
+  ['ls1','ls2','ls3'].forEach((id,i)=>{const e=el(id);if(e)e.textContent=[arr.length,done,inc][i];});
+}
+function updateLiveBadge(){
+  const act=stu2arr().filter(s=>s.status==='berlangsung').length;
+  const lb=el('lbadge');if(lb)lb.textContent=act;
+}
+function refreshAdminHint(){}
+function refreshStuHint(){}
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+const S = {
+  admin:null, student:null, stuKey:null,
+  answers:{}, cheat:null,
+  timerInt:null, timeLeft:0, startTime:null, qStart:null, curQ:0, done:false,
+  gazeInt:null, behavInt:null, inactTimer:null,
+  editQId:null, editAdminId:null, editPesKey:null,
+  cameraStream:null,
+  currentPanel:'aDash'
+};
+
+// ════════════════════════════════
+// PROFILE DROPDOWN
+// ════════════════════════════════
+function togglePd(){const m=el('pdMenu'),c=el('pdCaret'),o=m.classList.contains('open');m.classList.toggle('open',!o);c.classList.toggle('open',!o);if(!o)setTimeout(()=>document.addEventListener('click',closePdOut,{once:true}),10);}
+function closePd(){el('pdMenu').classList.remove('open');el('pdCaret').classList.remove('open');}
+function closePdOut(e){if(!el('pdWrap').contains(e.target))closePd();}
+function updateNavProfile(){
+  const a=S.admin;if(!a)return;const i=ini(a.name);
+  ['navAv','pdAv'].forEach(id=>{const e=el(id);if(e)e.textContent=i;});
+  if(el('navName'))el('navName').textContent=a.name;if(el('navRole'))el('navRole').textContent=a.role;
+  if(el('pdName'))el('pdName').textContent=a.name;if(el('pdRole'))el('pdRole').textContent=a.role;
+  const isSuper = a.role === 'Superadmin';
+  const isAdmin = isSuper || a.role === 'Admin';
+  document.querySelectorAll('.pd-item').forEach(item => {
+    if(item.textContent.includes('Kelola Admin') || item.textContent.includes('Tambah')) {
+        item.style.display = isAdmin ? 'flex' : 'none';
+    }
+  });
+}
+window.togglePd=togglePd;window.closePd=closePd;
+
+// ════════════════════════════════
+// PROFIL MODAL
+// ════════════════════════════════
+function mTab(btn,panelId){
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.mtp').forEach(p=>p.classList.remove('active'));
+  el(panelId).classList.add('active');
+  if(panelId==='mpEdit')fillEditProfil();
+  if(panelId==='mpAdmin')renderAdminList();
+}
+function openProfil(tabId, defaultRole = ''){
+  const isSuper = S.admin?.role === 'Superadmin';
+  const isAdmin = isSuper || S.admin?.role === 'Admin';
+  document.querySelectorAll('.mtab').forEach((t,i)=>{
+    t.classList.toggle('active',['mpEdit','mpPass','mpAdmin','mpNew'][i]===tabId);
+    if(i>=2) t.style.display = isAdmin ? 'block' : 'none';
+  });
+  document.querySelectorAll('.mtp').forEach(p=>p.classList.remove('active'));
+  el(tabId).classList.add('active');
+  if(tabId==='mpEdit')fillEditProfil();
+  if(tabId==='mpAdmin')renderAdminList();
+  if(tabId==='mpNew' && defaultRole) {
+    if(el('naRole')) el('naRole').value = defaultRole;
+  }
+  om('moProfil');
+}
+function fillEditProfil(){
+  const a=S.admin;if(!a)return;
+  el('epAv').textContent=ini(a.name);el('epCurName').textContent=a.name;el('epCurRole').textContent=a.role;
+  el('epName').value=a.name;el('epRole').value=a.role;el('epUser').value=a._key;
+}
+async function saveEditProfil(){
+  const name=el('epName').value.trim(),role=el('epRole').value.trim();
+  if(!name){toast('Nama tidak boleh kosong','warning');return;}
+  await dbUpdate(`admins/${S.admin._key}`,{name,role:role||S.admin.role});
+  S.admin.name=name;if(role)S.admin.role=role;
+  cache.admins[S.admin._key]={...cache.admins[S.admin._key],name,role};
+  updateNavProfile();fillEditProfil();syncBrands();
+  toast('Profil berhasil diperbarui!');
+}
+async function savePass(){
+  const old=el('ppOld').value,nw=el('ppNew').value,conf=el('ppConf').value;
+  if(old!==S.admin.password){el('ppErr').textContent='Password lama salah.';el('ppErr').classList.add('show');return;}
+  if(nw.length<6||nw!==conf){el('ppErr').textContent='Password tidak cocok / kurang dari 6 karakter.';el('ppErr').classList.add('show');return;}
+  el('ppErr').classList.remove('show');
+  await dbUpdate(`admins/${S.admin._key}`,{password:nw});
+  S.admin.password=nw;cache.admins[S.admin._key].password=nw;
+  el('ppOld').value='';el('ppNew').value='';el('ppConf').value='';
+  toast('Password berhasil diubah!');refreshAdminHint();
+}
+function renderAdminList(){
+  const admins=Object.entries(cache.admins||{});
+  const isSuper = S.admin?.role === 'Superadmin';
+  const isAdmin = isSuper || S.admin?.role === 'Admin';
+  el('adminListBody').innerHTML=admins.map(([k,a])=>{
+    const isMe = k===S.admin?._key;
+    const isMainAdmin = k==='admin';
+    const canEdit = isMe || isSuper || (isAdmin && a.role === 'Pengawas');
+    const canDelete = isSuper && !isMe && !isMainAdmin;
+    return `
+    <div class="av-row">
+      <div class="av-ico">${ini(a.name)}</div>
+      <div class="av-info"><div class="av-name">${a.name}${isMe?'<span class="badge bb" style="font-size:10px;margin-left:6px">Anda</span>':''}</div><div class="av-meta">@${k} · ${a.role}</div></div>
+      <div style="display:flex;gap:5px">
+        ${canEdit ? `<button class="btn btn-ghost btn-sm" onclick="openEditAdmin('${k}')">Edit</button>` : ''}
+        ${canDelete ? `<button class="btn btn-dang btn-sm" onclick="hapusAdmin('${k}')">Hapus</button>` : ''}
+      </div>
+    </div>`}).join('');
+}
+function openEditAdmin(key){
+  if(key === 'admin' && S.admin?._key !== 'admin') { toast('Tidak memiliki izin merubah Admin Utama!', 'danger'); return; }
+  const a=cache.admins[key];S.editAdminId=key;
+  const isSuper = S.admin?.role === 'Superadmin';
+  el('editAdminBody').innerHTML=`
+    <div class="fg"><label class="fl">Nama Tampilan</label><input class="fi" id="eaName" value="${a.name}"/></div>
+    <div class="fg"><label class="fl">Jabatan</label><input class="fi" id="eaRole" value="${a.role}" ${isSuper ? '' : 'disabled'}/></div>
+    <div class="fg"><label class="fl">Username</label><input class="fi" value="${key}" disabled/></div>
+    <div class="fg"><label class="fl">Password Baru <span style="color:var(--mu);font-weight:400">(kosongkan jika tidak diubah)</span></label>
+      <div class="pwrap"><input class="fi" id="eaPass" type="password" style="padding-right:42px"/><button class="peye" onclick="tpwd('eaPass',this)">👁</button></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="cm('moEditAdmin')">Batal</button>
+      <button class="btn btn-blue" style="flex:1" onclick="saveEditAdmin()">Simpan</button>
+    </div>`;
+  om('moEditAdmin');
+}
+async function saveEditAdmin(){
+  const a=cache.admins[S.editAdminId];const name=el('eaName').value.trim(),role=el('eaRole').value.trim(),pass=el('eaPass').value;
+  if(!name){toast('Nama tidak boleh kosong','warning');return;}
+  if(pass.length>0&&pass.length<6){toast('Password minimal 6 karakter','warning');return;}
+  const upd={name,role:role||a.role};if(pass.length>=6)upd.password=pass;
+  await dbUpdate(`admins/${S.editAdminId}`,upd);
+  if(S.editAdminId===S.admin?._key){S.admin.name=name;S.admin.role=upd.role;if(pass.length>=6)S.admin.password=pass;updateNavProfile();}
+  cm('moEditAdmin');renderAdminList();refreshAdminHint();
+  toast(`Akun @${S.editAdminId} diperbarui!`);
+}
+async function hapusAdmin(key){
+  const a=cache.admins[key];
+  confirm2(`Hapus @${key}?`,`Akun "${a.name}" akan dihapus permanen.`,async()=>{
+    await dbRemove(`admins/${key}`);renderAdminList();refreshAdminHint();toast(`Akun @${key} dihapus`,'warning');
+  });
+}
+async function tambahAdmin(){
+  const uid=el('naUser').value.trim().toLowerCase().replace(/\s/g,''),name=el('naName').value.trim(),role=el('naRole').value||'Pengawas',pass=el('naPass').value;
+  if(!uid||!name||!pass){toast('Lengkapi semua field','warning');return;}
+  if(pass.length<6){toast('Password minimal 6 karakter','warning');return;}
+  if(cache.admins?.[uid]){toast('Username sudah digunakan','danger');return;}
+  await dbSet(`admins/${uid}`,{name,password:pass,role});
+  el('naUser').value='';el('naName').value='';el('naPass').value='';
+  toast(`Akun @${uid} ditambahkan!`);
+  mTab(document.querySelectorAll('.mtab')[2],'mpAdmin');
+  refreshAdminHint();
+}
+window.mTab=mTab;window.openProfil=openProfil;window.saveEditProfil=saveEditProfil;window.savePass=savePass;
+window.openEditAdmin=openEditAdmin;window.saveEditAdmin=saveEditAdmin;window.hapusAdmin=hapusAdmin;window.tambahAdmin=tambahAdmin;
+
+// ════════════════════════════════
+// AUTH
+// ════════════════════════════════
+let pendingAdminLogin = null;
+function doAdminLogin(){
+  const u=el('auser').value.trim(),p=el('apass').value;
+  const entry=Object.entries(cache.admins||{}).find(([k,a])=>k===u&&a.password===p);
+  if(!entry || (entry[1].role!=='Superadmin' && entry[1].role!=='Admin')){el('aerr').classList.add('show');el('apass').style.borderColor='var(--rd)';return;}
+  el('aerr').classList.remove('show');el('apass').style.borderColor='';
+  pendingAdminLogin = {_key:entry[0],...entry[1]};
+  el('otpInput').value = '';
+  om('moOTP');
+}
+function doPengawasLogin(){
+  const u=el('puser').value.trim(),p=el('ppassL').value;
+  const entry=Object.entries(cache.admins||{}).find(([k,a])=>k===u&&a.password===p);
+  if(!entry || entry[1].role!=='Pengawas'){el('perr').classList.add('show');el('ppassL').style.borderColor='var(--rd)';return;}
+  el('perr').classList.remove('show');el('ppassL').style.borderColor='';
+  pendingAdminLogin = {_key:entry[0],...entry[1]};
+  el('otpInput').value = '';
+  om('moOTP');
+}
+function verifyOTP(){
+  const otp = el('otpInput').value.trim();
+  if(otp !== '123456') { toast('Kode OTP salah!','danger'); return; }
+  cm('moOTP');
+  S.admin = pendingAdminLogin;
+  updateNavProfile();showPage('admin');anav(el('sb-aDash'),'aDash');
+  toast(`Selamat datang, ${S.admin.name}!`);
+}
+function logoutAdmin(){confirm2('Keluar?','Kembali ke halaman utama.',()=>{S.admin=null;pendingAdminLogin=null;el('auser').value='';el('apass').value='';showPage('landing');toast('Berhasil keluar');});}
+async function doStudentLogin(){
+  const id=el('suser').value.trim(),p=el('spass').value;
+  const entry=Object.entries(cache.students||{}).find(([k,s])=>s.id===id&&s.password===p);
+  if(!entry){el('serr').classList.add('show');el('spass').style.borderColor='var(--rd)';return;}
+  el('serr').classList.remove('show');el('spass').style.borderColor='';
+  const [key,stu]=entry;
+  if(stu.status==='selesai'){
+    toast('Anda sudah menyelesaikan ujian ini. Hubungi pengawas untuk reset.','warning');
+    return;
+  }
+  S.student=stu;S.stuKey=key;
+  S.answers={};S.done=false;S.curQ=0;
+  resetCheat();
+  S.timeLeft=(cache.settings?.examDuration||20)*60;
+  S.startTime=Date.now();S.qStart=Date.now();
+  // Update status
+  await dbUpdate(`students/${key}`,{status:'berlangsung',risk:0,incidents:0});
+  showPage('exam');renderExamPage();setupDetection();startTimer();
+  toast(`Ujian dimulai — selamat mengerjakan, ${stu.name}!`);
+}
+function resetCheat(){S.cheat={tab:0,copy:0,fast:0,inact:0,blur:0,gaze:0,head:0,phone:0,whisper:0,ear:0,burst:0,consFast:0,times:[],log:[],alertLevel:0,risk:0,suspQ:[],lastActive:Date.now()};}
+window.doAdminLogin=doAdminLogin;window.doPengawasLogin=doPengawasLogin;window.logoutAdmin=logoutAdmin;window.doStudentLogin=doStudentLogin;
+
+// ════════════════════════════════
+// ADMIN NAV
+// ════════════════════════════════
+function anav(btn,panelId){
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.apanel').forEach(p=>p.style.display='none');
+  el(panelId).style.display='block';
+  S.currentPanel=panelId;
+  const fn={aDash:rDash,aMon:rMon,aRes:rRes,aSoal:rSoal,aPes:rPes,aRep:rRep,aSet:rSet};
+  if(fn[panelId])fn[panelId]();
+  updateLiveBadge();
+}
+window.anav=anav;
+
+// ════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════
+function rDash(){
+  const arr=stu2arr();
+  const act=arr.filter(s=>s.status==='berlangsung').length;
+  const done=arr.filter(s=>s.status==='selesai').length;
+  const totInc=arr.reduce((a,s)=>a+(s.incidents||0),0);
+  const flagged=arr.filter(s=>s.flagged).length;
+  const scores=arr.filter(s=>s.score!=null);
+  const avg=scores.length?Math.round(scores.reduce((a,s)=>a+s.score,0)/scores.length):0;
+  const incArr=inc2arr().slice(0,5);
+  el('aDash').innerHTML=`
+    <div class="phdr"><div class="bc">${cache.settings?.brand||'KoesExamGuard'} <span>/ Dashboard</span></div><h2>Dashboard Pengawas</h2><p>Selamat datang, ${S.admin?.name} &mdash; data real-time</p></div>
+    <div class="g4" style="margin-bottom:1.5rem">
+      <div class="scard sc-g"><div class="slbl">Peserta Aktif</div><div class="snum" style="color:var(--gn)">${act}</div><div class="ssub">Sedang mengerjakan</div></div>
+      <div class="scard sc-b"><div class="slbl">Ujian Selesai</div><div class="snum" style="color:var(--ac)">${done}</div><div class="ssub">dari ${arr.length} peserta</div></div>
+      <div class="scard sc-r"><div class="slbl">Total Insiden</div><div class="snum" style="color:var(--rd)">${totInc}</div><div class="ssub">${flagged} terflagging</div></div>
+      <div class="scard sc-o"><div class="slbl">Rata-rata Nilai</div><div class="snum" style="color:var(--or)">${avg||'—'}</div><div class="ssub">Peserta selesai</div></div>
+    </div>
+    <div class="g2" style="margin-bottom:1.5rem">
+      <div class="card">
+        <div class="ctitle">⚡ Insiden Terbaru</div>
+        ${incArr.length===0?'<div style="font-size:13px;color:var(--mu)">Belum ada insiden</div>':incArr.map(i=>`
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--bd)">
+            <span class="badge ${i.severity==='critical'?'br':i.severity==='high'?'bo':'bb'}" style="flex-shrink:0">${i.severity==='critical'?'KRITIS':i.severity==='high'?'TINGGI':'SEDANG'}</span>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.student}</div><div style="font-size:11px;color:var(--mu)">${i.type}</div></div>
+            <div style="font-size:10px;font-family:var(--mo);color:var(--mu);flex-shrink:0">${i.time||''}</div>
+          </div>`).join('')}
+        <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="anav(el('sb-aMon'),'aMon')">Monitor Live →</button>
+      </div>
+      <div class="card">
+        <div class="ctitle">◎ Status Peserta</div>
+        ${arr.slice(0,8).map(s=>{const rl=getRisk(s.risk||0);return`
+          <div style="display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--bd)">
+            <div class="dp ${s.status==='berlangsung'?'dpg':s.status==='selesai'?'dpx':'dpo'}"></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:500">${s.name}</div><div style="font-size:11px;color:var(--mu)">${s.kelas} · ${s.status}</div></div>
+            <div style="text-align:right"><div style="font-size:11px;font-family:var(--mo);color:${rl.color}">${s.risk||0}</div><div class="rbar" style="width:55px;margin-top:2px"><div class="rfill ${(s.risk||0)>=70?'rh':(s.risk||0)>=40?'rm':'rl'}" style="width:${s.risk||0}%"></div></div></div>
+          </div>`;}).join('')}
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════
+// MONITOR LIVE
+// ════════════════════════════════
+function rMon(){
+  const active=stu2arr().filter(s=>s.status==='berlangsung');
+  el('aMon').innerHTML=`
+    <div class="phdr"><div class="bc">${cache.settings?.brand||'KoesExamGuard'} <span>/ Monitor Live</span></div><h2>Monitor Kecurangan Real-time</h2>
+      <p style="display:flex;align-items:center;gap:8px">${active.length} peserta aktif &nbsp;<span class="rt-pulse"><span class="rt-dot"></span>Memantau real-time</span></p>
+    </div>
+    ${active.length===0?'<div style="text-align:center;padding:3rem;color:var(--mu)">Tidak ada peserta yang sedang aktif</div>':''}
+    ${active.map(s=>{const rl=getRisk(s.risk||0);const sinc=inc2arr().filter(i=>i.student===s.name).slice(0,3);return`
+      <div class="card" style="margin-bottom:1rem;${(s.risk||0)>=40?'border-color:rgba(239,68,68,.35)':''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:13px">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--cy));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0">${ini(s.name)}</div>
+            <div><div style="font-size:15px;font-weight:600">${s.name}</div><div style="font-size:12px;color:var(--mu)">${s.id} · Kelas ${s.kelas}</div></div>
+          </div>
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+            ${(s.risk||0)>=40?'<span class="badge br"><span class="dp dpr"></span>PERLU PERHATIAN</span>':'<span class="badge bg"><span class="dp dpg"></span>Normal</span>'}
+            <button class="btn btn-ghost btn-sm" onclick="showDetail('${s._key}')">Detail ↗</button>
+            <button class="btn btn-sm ${s.flagged?'btn-orange':'btn-red'}" onclick="toggleFlag('${s._key}',this)">${s.flagged?'★ Flagged':'Tandai ⚑'}</button>
+            <button class="btn btn-ghost btn-sm" onclick="addIncident('${s.name}','Peringatan manual dari pengawas','medium')">Kirim Peringatan</button>
+          </div>
+        </div>
+        <div class="g4" style="margin-bottom:1.25rem">
+          <div><div style="font-size:10px;color:var(--mu);margin-bottom:3px">SKOR RISIKO</div><div style="font-size:24px;font-weight:700;color:${rl.color};font-family:var(--mo)">${s.risk||0}</div></div>
+          <div><div style="font-size:10px;color:var(--mu);margin-bottom:3px">INSIDEN</div><div style="font-size:24px;font-weight:700;font-family:var(--mo)">${s.incidents||0}</div></div>
+          <div><div style="font-size:10px;color:var(--mu);margin-bottom:5px">BAR RISIKO</div><div class="rbar" style="height:9px"><div class="rfill ${(s.risk||0)>=70?'rh':(s.risk||0)>=40?'rm':'rl'}" style="width:${s.risk||0}%"></div></div><div style="font-size:10px;color:${rl.color};margin-top:3px">${rl.label}</div></div>
+          <div><div style="font-size:10px;color:var(--mu);margin-bottom:3px">STATUS</div><span class="badge bg"><span class="dp dpg"></span>Live</span></div>
+        </div>
+        <div class="g2">
+          <div>
+            <div style="font-size:11px;color:var(--mu);margin-bottom:7px;font-weight:600">INSIDEN TERBARU</div>
+            ${sinc.length===0?'<div style="font-size:12px;color:var(--mu)">Tidak ada insiden</div>':sinc.map(inc=>`
+              <div class="iitem ${inc.severity==='critical'?'ir':inc.severity==='high'?'io':'ib'}">
+                <div class="itime">${inc.time||'—'}</div>
+                <div class="imsg ${inc.severity==='critical'?'crit':inc.severity==='high'?'wrn':''}">${inc.type}</div>
+              </div>`).join('')}
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--mu);margin-bottom:7px;font-weight:600">KAMERA PENGAWAS</div>
+            <div class="camv">
+              <div class="cam-ol"><div class="cgrid">${Array(9).fill('<div class="ccell"></div>').join('')}</div><div class="cn ctl"></div><div class="cn ctr"></div><div class="cn cbl"></div><div class="cn cbr"></div></div>
+              ${s.frame ? `<img src="${s.frame}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0">` : `
+              <div style="z-index:1;text-align:center">
+                <div style="width:56px;height:56px;border-radius:50%;border:2px solid ${(s.risk||0)>=40?'var(--rd)':'var(--gn)'};display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:20px;font-weight:700;color:${(s.risk||0)>=40?'var(--rd)':'var(--gn)'}">${ini(s.name)}</div>
+                <div style="font-size:10px;color:var(--mu);margin-top:5px">Avatara peserta</div>
+              </div>`}
+              <div class="clbl">${s.name}</div>
+              <div class="crec"><div class="recdot"></div>REC</div>
+            </div>
+          </div>
+        </div>
+      </div>`;}).join('')}`;
+}
+
+async function toggleFlag(key,btn){
+  const s=cache.students?.[key];if(!s)return;
+  const newFlag=!s.flagged;
+  await dbUpdate(`students/${key}`,{flagged:newFlag});
+  btn.textContent=newFlag?'★ Flagged':'Tandai ⚑';btn.className=`btn btn-sm ${newFlag?'btn-orange':'btn-red'}`;
+  toast(newFlag?`${s.name} ditandai`:`Flag ${s.name} dihapus`,newFlag?'warning':'success');
+}
+async function addIncident(student,type,severity='medium'){
+  const time=new Date().toLocaleTimeString('id-ID');
+  await dbPush('incidents',{student,type,severity,time,ts:Date.now()});
+  toast(`Insiden dicatat: ${student}`,'warning');
+}
+window.toggleFlag=toggleFlag;window.addIncident=addIncident;
+
+// ════════════════════════════════
+// HASIL & NILAI
+// ════════════════════════════════
+function rRes(){
+  const arr=stu2arr().filter(s=>s.status==='selesai');
+  el('aRes').innerHTML=`
+    <div class="phdr"><div class="bc">${cache.settings?.brand||'KoesExamGuard'} <span>/ Hasil & Nilai</span></div><h2>Hasil Ujian</h2><p>${arr.length} peserta telah selesai</p></div>
+    <div class="g4" style="margin-bottom:1.5rem">
+      ${[['A (90-100)','g',arr.filter(s=>s.score>=90).length],['B (80-89)','b',arr.filter(s=>s.score>=80&&s.score<90).length],['C (70-79)','o',arr.filter(s=>s.score>=70&&s.score<80).length],['D/E (<70)','r',arr.filter(s=>s.score<70).length]].map(([l,c,n])=>`
+        <div class="scard sc-${c}"><div class="slbl">Nilai ${l}</div><div class="snum" style="color:${c==='g'?'var(--gn)':c==='b'?'var(--ac)':c==='o'?'var(--or)':'var(--rd)'}">${n}</div><div class="ssub">peserta</div></div>`).join('')}
+    </div>
+    <div class="twrap">
+      <table>
+        <thead><tr><th>Peserta</th><th>Kelas</th><th>Nilai</th><th>Grade</th><th>Risiko</th><th>Insiden</th><th>Durasi</th><th>Aksi</th></tr></thead>
+        <tbody>${arr.map(s=>{const g=getGrade(s.score);const rl=getRisk(s.risk||0);return`<tr>
+          <td><div class="tdp">${s.name}</div><div style="font-size:10px;color:var(--mu);font-family:var(--mo)">${s.id}</div></td>
+          <td>${s.kelas}</td>
+          <td><span style="font-size:17px;font-weight:700;font-family:var(--mo);color:${g.c==='g'?'var(--gn)':g.c==='b'?'var(--ac)':'var(--or)'}">${s.score}</span></td>
+          <td><span class="badge b${g.c}">${g.g} — ${g.l}</span></td>
+          <td><div style="display:flex;align-items:center;gap:7px"><span style="font-family:var(--mo);font-size:12px;color:${rl.color}">${s.risk||0}</span><div class="rbar" style="width:45px"><div class="rfill ${(s.risk||0)>=70?'rh':(s.risk||0)>=40?'rm':'rl'}" style="width:${s.risk||0}%"></div></div></div></td>
+          <td><span class="badge ${(s.incidents||0)>5?'br':(s.incidents||0)>0?'bo':'bg'}">${s.incidents||0}×</span></td>
+          <td><span style="font-family:var(--mo);font-size:12px">${s.duration||'—'}</span></td>
+          <td style="display:flex;gap:4px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="showDetail('${s._key}')">Detail</button>
+            <button class="btn btn-blue btn-sm" onclick="generateReport('${s._key}');anav(el('sb-aRep'),'aRep')">Laporan</button>
+          </td>
+        </tr>`;}).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+// ════════════════════════════════
+// BANK SOAL
+// ════════════════════════════════
+function rSoal(){
+  const qArr=q2arr();
+  const isSuper = S.admin?.role === 'Superadmin';
+  const isAdmin = isSuper || S.admin?.role === 'Admin';
+  el('aSoal').innerHTML=`
+    <div class="phdr"><div class="bc">${cache.settings?.brand||'KoesExamGuard'} <span>/ Bank Soal</span></div><h2>Bank Soal</h2><p>${qArr.length} soal tersedia</p></div>
+    ${isAdmin ? "<div style=\"display:flex;justify-content:flex-end;margin-bottom:1rem\"><button class=\"btn btn-blue\" onclick=\"om('moAddSoal')\">+ Tambah Soal</button></div>" : ''}
+    <div id="soalList" style="display:flex;flex-direction:column;gap:9px">${renderSoalList(qArr)}</div>`;
+}
+function renderSoalList(qArr){
+  if(!qArr)qArr=q2arr();
+  const isSuper = S.admin?.role === 'Superadmin';
+  const isAdmin = isSuper || S.admin?.role === 'Admin';
+  return qArr.map((q,i)=>`
+    <div class="card-sm" style="display:flex;gap:14px;align-items:flex-start">
+      <div style="width:30px;height:30px;border-radius:7px;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-family:var(--mo);font-size:12px;font-weight:700;flex-shrink:0;color:var(--ac)">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;color:var(--tx);margin-bottom:7px;line-height:1.6">${q.text}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <span class="chip">${q.topic}</span>
+          <span class="chip" style="color:${q.difficulty==='mudah'?'var(--gn)':q.difficulty==='sedang'?'var(--or)':'var(--rd)'}">${q.difficulty}</span>
+          <span class="chip" style="background:rgba(16,185,129,.1);color:var(--gn)">✓ ${q.options[q.correct]}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="editSoal('${q._key}')">Edit</button>` : ''}
+        ${isSuper ? `<button class="btn btn-dang btn-sm" onclick="deleteSoal('${q._key}')">✕</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+async function saveSoal(){
+  const text=el('nqtext').value.trim();if(!text){toast('Isi teks soal','warning');return;}
+  const key='q'+Date.now();
+  await dbSet(`questions/${key}`,{id:key,text,topic:el('nqtopic').value,difficulty:el('nqdiff').value,correct:parseInt(el('nqans').value),options:['A','B','C','D'].map((l,i)=>`${l}. ${el(`nqo${i}`).value||`Pilihan ${l}`}`)});
+  toast('Soal ditambahkan!');cm('moAddSoal');
+  ['nqtext','nqo0','nqo1','nqo2','nqo3'].forEach(id=>{if(el(id))el(id).value='';});
+}
+function editSoal(key){
+  const q=cache.questions?.[key];if(!q)return;S.editQId=key;
+  el('meditSoalBody').innerHTML=`
+    <div class="fg"><label class="fl">Teks Soal</label><textarea class="fi" id="eqtext">${q.text}</textarea></div>
+    <div class="g2">
+      <div class="fg"><label class="fl">Topik</label><select class="fi" id="eqtopic">${['Matematika','IPA','Sejarah','Geografi','Bahasa Inggris','Sastra','Lainnya'].map(t=>`<option${t===q.topic?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Kesulitan</label><select class="fi" id="eqdiff">${['mudah','sedang','sulit'].map(d=>`<option value="${d}"${d===q.difficulty?' selected':''}>${d.charAt(0).toUpperCase()+d.slice(1)}</option>`).join('')}</select></div>
+    </div>
+    ${q.options.map((o,i)=>`<div class="fg"><label class="fl">Pilihan ${['A','B','C','D'][i]}</label><input class="fi" id="eqo${i}" value="${o.substring(3)}"/></div>`).join('')}
+    <div class="fg"><label class="fl">Jawaban Benar</label><select class="fi" id="eqans">${['A','B','C','D'].map((l,i)=>`<option value="${i}"${i===q.correct?' selected':''}>${l}</option>`).join('')}</select></div>
+    <button class="btn btn-blue btn-full" onclick="updateSoal()">Simpan Perubahan</button>`;
+  om('moEditSoal');
+}
+async function updateSoal(){
+  const upd={text:el('eqtext').value.trim(),topic:el('eqtopic').value,difficulty:el('eqdiff').value,correct:parseInt(el('eqans').value),options:['A','B','C','D'].map((l,i)=>`${l}. ${el(`eqo${i}`).value||`Pilihan ${l}`}`)};
+  await dbUpdate(`questions/${S.editQId}`,upd);
+  toast('Soal diperbarui!');cm('moEditSoal');
+}
+async function deleteSoal(key){
+  const q=cache.questions?.[key];if(!q)return;
+  confirm2('Hapus Soal?',`"${q.text.substring(0,50)}..."`,async()=>{await dbRemove(`questions/${key}`);toast('Soal dihapus','warning');});
+}
+window.saveSoal=saveSoal;window.editSoal=editSoal;window.updateSoal=updateSoal;window.deleteSoal=deleteSoal;
+
+// ════════════════════════════════
+// PESERTA
+// ════════════════════════════════
+function rPes(){
+  const arr=stu2arr();
+  const isSuper = S.admin?.role === 'Superadmin';
+  const isAdmin = isSuper || S.admin?.role === 'Admin';
+  el('aPes').innerHTML=`
+    <div class="phdr"><div class="bc">${cache.settings?.brand||'KoesExamGuard'} <span>/ Peserta</span></div><h2>Manajemen Peserta</h2><p>${arr.length} peserta terdaftar</p></div>
+    ${isAdmin ? "<div style=\"display:flex;justify-content:flex-end;margin-bottom:1rem\"><button class=\"btn btn-blue\" onclick=\"openAddPes()\">+ Tambah Peserta</button></div>" : ''}
+    <div class="twrap">
+      <table>
+        <thead><tr><th>No.</th><th>Nama</th><th>Kelas</th><th>Status</th><th>Nilai</th><th>Risiko</th><th>Insiden</th><th>Flag</th><th>Aksi</th></tr></thead>
+        <tbody id="pesTbody">${renderPesTbody(arr)}</tbody>
+      </table>
+    </div>`;
+}
+function renderPesTbody(arr){
+  if(!arr)arr=stu2arr();
+  const isSuper = S.admin?.role === 'Superadmin';
+  const isAdmin = isSuper || S.admin?.role === 'Admin';
+  return arr.map(s=>{const rl=getRisk(s.risk||0);const sb=s.status==='berlangsung'?`<span class="badge bg"><span class="dp dpg"></span>Live</span>`:s.status==='selesai'?`<span class="badge bx">Selesai</span>`:`<span class="badge bp">Belum</span>`;
+    return`<tr>
+      <td><span style="font-family:var(--mo);color:var(--mu)">${s.id}</span></td>
+      <td class="tdp">${s.name}</td>
+      <td>${s.kelas}</td>
+      <td>${sb}</td>
+      <td>${s.score!=null?`<span style="font-weight:700;font-family:var(--mo)">${s.score}</span>`:'—'}</td>
+      <td><span style="color:${rl.color};font-family:var(--mo)">${s.risk||0}</span></td>
+      <td><span class="badge ${(s.incidents||0)>5?'br':(s.incidents||0)>0?'bo':'bg'}">${s.incidents||0}×</span></td>
+      <td>${s.flagged?'<span class="badge bo">⚑</span>':'<span class="badge bx">—</span>'}</td>
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="showDetail('${s._key}')">Detail</button>
+        ${isAdmin ? `<button class="btn btn-ghost btn-sm" onclick="openEditPes('${s._key}')">Edit</button>` : ''}
+        ${isSuper ? `<button class="btn btn-dang btn-sm" onclick="hapusPes('${s._key}')">Hapus</button>` : ''}
+      </td>
+    </tr>`;}).join('');
+}
+function openAddPes(){
+  el('mPesTitle').textContent='Tambah Peserta';S.editPesKey=null;
+  el('mPesBody').innerHTML=`
+    <div class="fg"><label class="fl">Nama Lengkap</label><input class="fi" id="npname" placeholder="Nama lengkap..."/></div>
+    <div class="g2">
+      <div class="fg"><label class="fl">No. Peserta</label><input class="fi" id="npid" placeholder="2024-007"/></div>
+      <div class="fg"><label class="fl">Kelas</label><input class="fi" id="npkelas" placeholder="9A"/></div>
+    </div>
+    <div class="fg"><label class="fl">Password Ujian</label><div class="pwrap"><input class="fi" id="nppass" type="password" style="padding-right:42px"/><button class="peye" onclick="tpwd('nppass',this)">👁</button></div></div>
+    <button class="btn btn-blue btn-full" onclick="savePes()">Daftarkan Peserta</button>`;
+  om('moPeserta');
+}
+function openEditPes(key){
+  const s=cache.students?.[key];if(!s)return;S.editPesKey=key;
+  el('mPesTitle').textContent=`Edit — ${s.name}`;
+  el('mPesBody').innerHTML=`
+    <div class="fg"><label class="fl">Nama Lengkap</label><input class="fi" id="npname" value="${s.name}"/></div>
+    <div class="g2">
+      <div class="fg"><label class="fl">No. Peserta</label><input class="fi" id="npid" value="${s.id}" disabled/></div>
+      <div class="fg"><label class="fl">Kelas</label><input class="fi" id="npkelas" value="${s.kelas}"/></div>
+    </div>
+    <div class="fg"><label class="fl">Password Baru <span style="color:var(--mu);font-weight:400">(kosongkan jika tidak diubah)</span></label><div class="pwrap"><input class="fi" id="nppass" type="password" style="padding-right:42px"/><button class="peye" onclick="tpwd('nppass',this)">👁</button></div></div>
+    <button class="btn btn-blue btn-full" onclick="savePes()">Simpan Perubahan</button>`;
+  om('moPeserta');
+}
+async function savePes(){
+  const name=el('npname').value.trim(),kelas=el('npkelas').value.trim(),pass=el('nppass').value;
+  if(S.editPesKey){
+    if(!name){toast('Nama tidak boleh kosong','warning');return;}
+    if(pass.length>0&&pass.length<6){toast('Password minimal 6 karakter','warning');return;}
+    const upd={name,kelas:kelas||cache.students[S.editPesKey].kelas};
+    if(pass.length>=6)upd.password=pass;
+    await dbUpdate(`students/${S.editPesKey}`,upd);
+    toast(`Data ${name} diperbarui!`);
+  }else{
+    const id=el('npid').value.trim();
+    if(!name||!id||pass.length<6){toast('Lengkapi semua field (password min. 6 karakter)','warning');return;}
+    const dup=Object.values(cache.students||{}).find(s=>s.id===id);
+    if(dup){toast('No. peserta sudah terdaftar','danger');return;}
+    const key='s'+id.replace(/[^a-zA-Z0-9]/g,'');
+    await dbSet(`students/${key}`,{id,name,kelas,password:pass,status:'belum',score:null,risk:0,incidents:0,duration:null,flagged:false});
+    toast(`Peserta ${name} didaftarkan!`);
+  }
+  cm('moPeserta');refreshStuHint();
+}
+async function hapusPes(key){
+  const s=cache.students?.[key];if(!s)return;
+  confirm2('Hapus Peserta?',`"${s.name}" akan dihapus permanen dari sistem.`,async()=>{
+    await dbRemove(`students/${key}`);toast(`${s.name} dihapus`,'warning');refreshStuHint();
+  });
+}
+async function resetStudent(key){
+  const s=cache.students?.[key];if(!s)return;
+  confirm2(`Reset ${s.name}?`,'Data ujian akan dihapus, peserta bisa ujian kembali.',async()=>{
+    await dbUpdate(`students/${key}`,{status:'belum',score:null,risk:0,incidents:0,duration:null,flagged:false});
+    toast(`Data ${s.name} direset`);
+  });
+}
+window.openAddPes=openAddPes;window.openEditPes=openEditPes;window.savePes=savePes;window.hapusPes=hapusPes;window.resetStudent=resetStudent;
+
+// ════════════════════════════════
+// LAPORAN AI
+// ════════════════════════════════
+function rRep(){
+  el('aRep').innerHTML=`
+    <div class="phdr"><div class="bc">${cache.settings?.brand||'KoesExamGuard'} <span>/ Laporan AI</span></div><h2>Laporan Kecurangan AI</h2><p>Analisis otomatis per peserta</p></div>
+    <div class="g2">${stu2arr().map(s=>{const rl=getRisk(s.risk||0);return`
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <div><div style="font-size:14px;font-weight:600">${s.name}</div><div style="font-size:11px;color:var(--mu)">${s.id} · ${s.kelas} · ${s.status}</div></div>
+          <span class="badge b${rl.cls}">Risiko ${rl.label}</span>
+        </div>
+        <div class="rbar" style="height:7px;margin-bottom:9px"><div class="rfill ${(s.risk||0)>=70?'rh':(s.risk||0)>=40?'rm':'rl'}" style="width:${s.risk||0}%"></div></div>
+        <div style="font-size:12px;color:var(--mu);margin-bottom:10px">${s.incidents||0} insiden · Nilai: ${s.score??'Belum'}</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="generateReport('${s._key}')">⚡ Generate Laporan AI</button>
+        <div id="rep-${s._key}" style="margin-top:10px"></div>
+      </div>`;}).join('')}</div>`;
+}
+function generateReport(key){
+  const s=cache.students?.[key];if(!s)return;const rl=getRisk(s.risk||0);
+  const repEl=el(`rep-${key}`);
+  if(!repEl){anav(el('sb-aRep'),'aRep');setTimeout(()=>generateReport(key),300);return;}
+  repEl.innerHTML=`<div class="ai-report ai-typing" style="font-size:11px">Menganalisis data...</div>`;
+  const ts=new Date().toLocaleString('id-ID');
+  const brand=cache.settings?.brand||'KoesExamGuard';
+  const r=s.risk||0;
+  const report=`LAPORAN ANALISIS KECURANGAN — ${brand}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Waktu    : ${ts}
+Peserta  : ${s.name} | ID: ${s.id} | Kelas: ${s.kelas}
+Status   : ${s.status.toUpperCase()} | Nilai: ${s.score??'Belum selesai'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SKOR RISIKO : ${r}/100 (${rl.label.toUpperCase()})
+Total Insiden: ${s.incidents||0} kejadian
+
+ANALISIS TEMUAN:
+${r>=70?`[SERIUS] ${s.incidents||0} insiden kecurangan berat.\n• Kemungkinan perangkat tidak sah\n• REKOMENDASI: Diskualifikasi & investigasi`:r>=40?`[TINJAUAN] ${s.incidents||0} insiden mencurigakan.\n• Perilaku tidak wajar saat ujian\n• REKOMENDASI: Wawancara & tinjau hasil`:r>=15?`[WASPADA] ${s.incidents||0} insiden minor.\n• Kemungkinan tidak disengaja\n• REKOMENDASI: Catat sebagai observasi`:`[BERSIH] Tidak ada indikasi kecurangan.\n• Pola perilaku normal\n• REKOMENDASI: Hasil ujian dapat diterima`}
+
+STATUS VALIDITAS : ${r>=70?'DIPERTANYAKAN ⚠':r>=40?'PERLU TINJAUAN ⚠':r>=15?'OBSERVASI ℹ':'VALID ✓'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Dibuat otomatis oleh ${brand} AI System`;
+  setTimeout(()=>{
+    if(el(`rep-${key}`)){
+      el(`rep-${key}`).innerHTML = `
+        <div id="report-content-${key}" class="ai-report" style="font-size:11px">${report}</div>
+        <div style="display:flex;gap:5px;margin-top:10px">
+          <button class="btn btn-ghost btn-sm" onclick="downloadReport('${key}', 'pdf')" style="flex:1;border-color:var(--bd);color:var(--tx)">📄 Unduh PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadReport('${key}', 'doc')" style="flex:1;border-color:var(--bd);color:var(--tx)">📝 Unduh DOC</button>
+        </div>`;
+    }
+  },1500);
+  toast(`Laporan AI untuk ${s.name} dibuat`);
+}
+function downloadReport(key, type) {
+  const s = cache.students?.[key];
+  if(!s) return;
+  const contentEl = el(`report-content-${key}`);
+  if(!contentEl) return;
+  
+  const brand = cache.settings?.brand || 'KoesExamGuard';
+  const filename = `Laporan_${s.name.replace(/\s+/g, '_')}_${s.id}`;
+  
+  if(type === 'pdf') {
+    toast('Menyiapkan file PDF...', 'info');
+    const opt = {
+      margin: 10,
+      filename: filename + '.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    const clone = document.createElement('div');
+    const pureText = contentEl.innerText || contentEl.textContent;
+    clone.innerHTML = "<div style='font-family: monospace, sans-serif; font-size: 14px; line-height: 1.6; color: #000; background: #fff; padding: 20px; text-align: left;'>" + 
+      pureText.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + 
+      "</div>";
+    html2pdf().set(opt).from(clone).save().then(() => toast('PDF berhasil diunduh!'));
+  } else if (type === 'doc') {
+    toast('Menyiapkan file DOC...', 'info');
+    const preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Laporan Kecurangan</title></head><body>";
+    const postHtml = "</body></html>";
+    let html = preHtml + "<div style='font-family: monospace; font-size: 14px;'>" + contentEl.innerHTML.replace(/\n/g, "<br>") + "</div>" + postHtml;
+    
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename + '.doc';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast('DOC berhasil diunduh!');
+  }
+}
+window.generateReport=generateReport;window.downloadReport=downloadReport;
+
+// ════════════════════════════════
+// PENGATURAN
+// ════════════════════════════════
+function rSet(){
+  el('aSet').innerHTML=`
+    <div class="phdr"><div class="bc">${cache.settings?.brand||'KoesExamGuard'} <span>/ Pengaturan</span></div><h2>Pengaturan Sistem</h2></div>
+    <div class="g2">
+      <div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="ctitle">Konfigurasi Ujian</div>
+          <div class="fg"><label class="fl">Nama Institusi / Aplikasi</label><input class="fi" id="setBrand" value="${cache.settings?.brand||'KoesExamGuard'}" ${S.admin?.role !== 'Superadmin' ? 'disabled' : ''}/></div>
+          <div class="fg"><label class="fl">Durasi Ujian (menit)</label><input class="fi" type="number" id="setDur" value="${cache.settings?.examDuration||20}" min="5" max="180"/></div>
+          <div class="fg"><label class="fl">Ambang Risiko Auto-Flag</label><input class="fi" type="number" id="setRisk" value="${cache.settings?.maxRisk||70}" min="10" max="100"/></div>
+          <div style="margin-bottom:1.5rem">
+            ${[['Auto-flag peserta berisiko tinggi','autoFlag'],['Kamera wajib saat ujian','camRequired']].map(([l,k])=>`
+              <div class="togrow">
+                <span style="font-size:13px;color:var(--mu2)">${l}</span>
+                <div class="tog" style="background:${cache.settings?.[k]?'var(--gn)':'var(--sf2)'}" onclick="toggleSet('${k}',this)">
+                  <div class="tknob" style="left:${cache.settings?.[k]?'20':'2'}px"></div>
+                </div>
+              </div>`).join('')}
+          </div>
+          <button class="btn btn-green" onclick="saveSettings()">💾 Simpan ke Server</button>
+        </div>
+        <div class="card" style="background:rgba(79,142,247,.04);border-color:rgba(79,142,247,.2)">
+          <div class="ctitle">👤 ${S.admin?.role !== 'Pengawas' ? 'Manajemen Akun Sistem' : 'Manajemen Akun Anda'}</div>
+          <p style="font-size:12px;color:var(--mu2);margin-bottom:1rem;line-height:1.6">${S.admin?.role !== 'Pengawas' ? 'Edit akun, ganti password, tambah admin atau pengawas ke sistem.' : 'Edit informasi profil dan ganti password akun ini.'}</p>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1rem">
+            <button class="btn btn-blue btn-sm" onclick="openProfil('mpEdit')">✏ Edit Profil</button>
+            <button class="btn btn-ghost btn-sm" onclick="openProfil('mpPass')">🔑 Ganti Password</button>
+            ${S.admin?.role === 'Superadmin' ? `<button class="btn btn-ghost btn-sm" onclick="openProfil('mpNew', 'Admin')">+ Tambah Admin</button>` : ''}
+            ${S.admin?.role === 'Superadmin' || S.admin?.role === 'Admin' ? `
+            <button class="btn btn-ghost btn-sm" onclick="openProfil('mpNew', 'Pengawas')">+ Tambah Pengawas</button>
+            <button class="btn btn-ghost btn-sm" onclick="openProfil('mpAdmin')">👥 Kelola Akun</button>
+            ` : ''}
+          </div>
+          ${S.admin?.role === 'Superadmin' || S.admin?.role === 'Admin' ? Object.entries(cache.admins||{}).map(([k,a])=>`
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)">
+              <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--cy));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${ini(a.name)}</div>
+              <div style="flex:1"><div style="font-size:13px;color:var(--tx)">${a.name}${k===S.admin?._key?' <span class="badge bb" style="font-size:10px">Anda</span>':''}</div><div style="font-size:11px;color:var(--mu)">@${k} · ${a.role}</div></div>
+              ${(k===S.admin?._key || S.admin?.role === 'Superadmin' || (S.admin?.role === 'Admin' && a.role === 'Pengawas')) ? `<button class="btn btn-ghost btn-sm" onclick="openEditAdmin('${k}')">Edit</button>` : ''}
+              ${S.admin?.role === 'Superadmin' && k !== 'admin' && k !== S.admin?._key ? `<button class="btn btn-dang btn-sm" onclick="hapusAdmin('${k}')">Hapus</button>` : ''}
+            </div>`).join('') : ''}
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="ctitle">📄 Ekspor Data Peserta (Print & Download)</div>
+          <p style="font-size:12px;color:var(--mu2);margin-bottom:1rem">Cetak seluruh data beserta hasil nilai dari seluruh peserta.</p>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-blue btn-sm" onclick="printDataPeserta()">🖨 Print Data</button>
+            <button class="btn btn-green btn-sm" onclick="downloadDataPeserta()">⬇ Download CSV</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="ctitle">📊 Statistik Sistem</div>
+          ${[['Total Peserta',stu2arr().length],['Total Soal',q2arr().length],['Ujian Selesai',stu2arr().filter(s=>s.status==='selesai').length],['Sedang Berlangsung',stu2arr().filter(s=>s.status==='berlangsung').length],['Total Insiden',inc2arr().length],['Peserta Terflagging',stu2arr().filter(s=>s.flagged).length],['Total Admin',Object.keys(cache.admins||{}).length]].map(([l,v])=>`
+            <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bd)">
+              <span style="font-size:13px;color:var(--mu2)">${l}</span>
+              <span style="font-size:13px;font-weight:700;font-family:var(--mo)">${v}</span>
+            </div>`).join('')}
+        </div>
+        <div class="card">
+          <div class="ctitle" style="color:var(--rd)">⚠ Zona Berbahaya</div>
+          <p style="font-size:12px;color:var(--mu2);margin-bottom:1rem">Aksi ini tidak dapat dibatalkan dan langsung tersinkronisasi ke semua pengguna.</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-dang btn-sm" onclick="confirm2('Reset Semua Data Ujian?','Semua nilai, insiden, dan status peserta akan dihapus dari database.',resetAllData)">↺ Reset Semua Data Ujian</button>
+            <button class="btn btn-dang btn-sm" onclick="confirm2('Hapus Semua Insiden?','Seluruh log insiden akan dikosongkan.',clearIncidents)">✕ Hapus Semua Insiden</button>
+            <button class="btn btn-dang btn-sm" onclick="confirm2('Reset ke Data Default?','SEMUA data (peserta, soal, admin) akan dikembalikan ke default awal. Tidak bisa dibatalkan.',resetToDefault)">⚠ Reset ke Data Default</button>
+            <button class="btn btn-ghost btn-sm" onclick="el('setupGuide').style.display='flex'">📋 Lihat Akun &amp; Password Default</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function toggleSet(key,tog){
+  const cur=cache.settings?.[key];
+  tog.style.background=!cur?'var(--gn)':'var(--sf2)';
+  tog.querySelector('.tknob').style.left=!cur?'20px':'2px';
+  if(cache.settings)cache.settings[key]=!cur;
+}
+async function saveSettings(){
+  const brand=el('setBrand').value.trim()||'KoesExamGuard';
+  const upd={brand,examDuration:parseInt(el('setDur').value)||20,maxRisk:parseInt(el('setRisk').value)||70,autoFlag:cache.settings?.autoFlag??true,camRequired:cache.settings?.camRequired??true};
+  await dbUpdate('settings',upd);
+  syncBrands();toast('Pengaturan disimpan ke server!');
+}
+async function resetAllData(){
+  const arr=stu2arr();
+  for(const s of arr){await dbUpdate(`students/${s._key}`,{status:'belum',score:null,risk:0,incidents:0,duration:null,flagged:false});}
+  await dbSet('incidents',{});
+  saveToLS();
+  toast('Semua data ujian direset','warning');
+}
+async function clearIncidents(){await dbSet('incidents',{});saveToLS();toast('Insiden dikosongkan','warning');}
+async function resetToDefault(){
+  Object.assign(cache, JSON.parse(JSON.stringify(DEFAULT_DATA)));
+  saveToLS();
+  toast('Data direset ke default!','warning');
+  setTimeout(()=>location.reload(),1200);
+}
+function printDataPeserta() {
+  const arr = stu2arr();
+  let html = '<h2 style="text-align:center;">Data Peserta & Nilai</h2><table border="1" style="width:100%;border-collapse:collapse;text-align:left;font-size:14px;font-family:sans-serif;">';
+  html += '<tr><th style="padding:8px;">No. Peserta</th><th style="padding:8px;">Nama</th><th style="padding:8px;">Kelas</th><th style="padding:8px;">Status</th><th style="padding:8px;">Nilai</th><th style="padding:8px;">Risiko</th><th style="padding:8px;">Insiden</th></tr>';
+  arr.forEach(s => {
+    html += `<tr><td style="padding:8px;">${s.id}</td><td style="padding:8px;">${s.name}</td><td style="padding:8px;">${s.kelas}</td><td style="padding:8px;">${s.status}</td><td style="padding:8px;font-weight:bold;">${s.score??'-'}</td><td style="padding:8px;">${s.risk||0}</td><td style="padding:8px;">${s.incidents||0}</td></tr>`;
+  });
+  html += '</table>';
+  const w = window.open('','_blank');
+  w.document.write('<html><head><title>Print Data Peserta</title></head><body style="padding:20px;">' + html + '</body></html>');
+  w.document.close();
+  setTimeout(()=> { w.print(); }, 500);
+}
+function downloadDataPeserta() {
+  const arr = stu2arr();
+  let csv = 'No. Peserta,Nama,Kelas,Status,Nilai,Risiko,Insiden\n';
+  arr.forEach(s => {
+    csv += `${s.id},"${s.name}",${s.kelas},${s.status},${s.score??'-'},${s.risk||0},${s.incidents||0}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Data_Peserta_ExamGuard.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+window.printDataPeserta=printDataPeserta;window.downloadDataPeserta=downloadDataPeserta;
+window.toggleSet=toggleSet;window.saveSettings=saveSettings;window.resetAllData=resetAllData;window.clearIncidents=clearIncidents;window.resetToDefault=resetToDefault;
+
+// ════════════════════════════════
+// DETAIL PESERTA
+// ════════════════════════════════
+function showDetail(key){
+  const s=cache.students?.[key];if(!s)return;
+  const rl=getRisk(s.risk||0);const g=s.score!=null?getGrade(s.score):null;
+  const sinc=inc2arr().filter(i=>i.student===s.name);
+  el('mdTitle').textContent=`Detail — ${s.name}`;
+  el('mdBody').innerHTML=`
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--bd)">
+      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--cy));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0">${ini(s.name)}</div>
+      <div>
+        <div style="font-size:18px;font-weight:700">${s.name}</div>
+        <div style="font-size:12px;color:var(--mu)">${s.id} · Kelas ${s.kelas}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          ${g?`<span class="badge b${g.c}">${g.g} — ${g.l}</span>`:''}
+          <span class="badge b${rl.cls}">Risiko ${rl.label}</span>
+          ${s.flagged?'<span class="badge bo">⚑ Flagged</span>':''}
+        </div>
+      </div>
+    </div>
+    <div class="g4" style="margin-bottom:1.5rem">
+      ${[['NILAI',s.score??'—','var(--tx)'],['RISIKO',s.risk||0,rl.color],['INSIDEN',s.incidents||0,'var(--or)'],['DURASI',s.duration??'—','var(--tx)']].map(([l,v,c])=>`
+        <div style="background:var(--sf2);border-radius:var(--r);padding:11px">
+          <div style="font-size:10px;color:var(--mu);margin-bottom:3px">${l}</div>
+          <div style="font-size:22px;font-weight:800;font-family:var(--mo);color:${c}">${v}</div>
+        </div>`).join('')}
+    </div>
+    ${(s.risk||0)>=40?`<div class="alert alr"><span>⚠</span><div><strong>Perhatian:</strong> Skor risiko tinggi. Hasil perlu divalidasi pengawas.</div></div>`:''}
+    <div class="ctitle" style="margin-bottom:9px">Insiden Terdeteksi (${sinc.length})</div>
+    ${sinc.length===0?'<div style="font-size:13px;color:var(--mu);margin-bottom:1rem">Tidak ada insiden</div>':sinc.slice(0,5).map(inc=>`
+      <div class="iitem ${inc.severity==='critical'?'ir':inc.severity==='high'?'io':'ib'}" style="margin-bottom:5px">
+        <div class="itime">${inc.time||'—'}</div>
+        <div class="imsg ${inc.severity==='critical'?'crit':inc.severity==='high'?'wrn':''}">${inc.type}</div>
+        <span class="badge ${inc.severity==='critical'?'br':'bo'}" style="margin-left:auto">${inc.severity}</span>
+      </div>`).join('')}
+    <div style="display:flex;gap:7px;margin-top:1.5rem;flex-wrap:wrap">
+      <button class="btn btn-blue btn-sm" onclick="generateReport('${key}');cm('moDetail');anav(el('sb-aRep'),'aRep')">⚡ Laporan AI</button>
+      <button class="btn btn-ghost btn-sm" onclick="openEditPes('${key}');cm('moDetail')">✏ Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="toggleFlag('${key}',this)">${s.flagged?'Hapus Flag':'Flag'}</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetStudent('${key}');cm('moDetail')">Reset</button>
+      <button class="btn btn-dang btn-sm" onclick="hapusPes('${key}');cm('moDetail')">Hapus</button>
+    </div>`;
+  om('moDetail');
+}
+window.showDetail=showDetail;
+
+// ════════════════════════════════
+// KAMERA (WebRTC)
+// ════════════════════════════════
+let camSyncInt = null;
+async function startCamera(videoId){
+  const vid=el(videoId);if(!vid)return null;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
+    vid.srcObject=stream;vid.style.display='block';
+    await vid.play();S.cameraStream=stream;
+    
+    if(USE_FIREBASE && S.stuKey) {
+      camSyncInt = setInterval(()=>{
+        if(S.done || !S.cameraStream) return;
+        try {
+          const cvs = document.createElement('canvas'); cvs.width = 160; cvs.height = 120;
+          const ctx = cvs.getContext('2d'); ctx.drawImage(vid, 0, 0, 160, 120);
+          const f = cvs.toDataURL('image/jpeg', 0.4);
+          dbUpdate(`students/${S.stuKey}`,{frame:f});
+        } catch(e){}
+      }, 3500);
+    }
+    
+    // Hapus placeholder
+    vid.parentElement.querySelectorAll('.cam-ph').forEach(e=>e.remove());
+    return stream;
+  }catch(e){
+    vid.style.display='none';
+    const ph=vid.parentElement.querySelector('.cam-ph');
+    if(ph){ph.innerHTML=`<div style="font-size:2rem;opacity:.25">📷</div><div>Kamera tidak tersedia</div><div style="font-size:10px;color:var(--mu)">${e.name==='NotAllowedError'?'Izin ditolak':'Tidak ditemukan'}</div>`;}
+    return null;
+  }
+}
+function stopCamera(){
+  if(camSyncInt){ clearInterval(camSyncInt); camSyncInt=null; }
+  if(S.cameraStream){S.cameraStream.getTracks().forEach(t=>t.stop());S.cameraStream=null;}
+}
+
+// ════════════════════════════════
+// EXAM
+// ════════════════════════════════
+function renderExamPage(){
+  const u=S.student;
+  el('examNav').innerHTML=`
+    <div style="display:flex;align-items:center;gap:9px;padding:5px 11px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r)">
+      <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--gn),var(--cy));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${ini(u.name)}</div>
+      <span style="font-size:13px;font-weight:500">${u.name}</span>
+      <span style="padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;background:rgba(16,185,129,.15);color:var(--gn);border:1px solid rgba(16,185,129,.25)">PESERTA</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:14px;font-weight:700;font-family:var(--mo);color:var(--ac)" id="etimer">${fmt(S.timeLeft)}</span>
+      <span class="badge bg" id="eRiskBadge">Aman</span>
+      <button class="nbtn ng" onclick="confirmFinish()">Selesai</button>
+    </div>`;
+  renderQContent();renderExamSide();
+  setTimeout(()=>startCamera('examCamera'),600);
+}
+function confirmFinish(){confirm2('Selesaikan Ujian?',`${Object.keys(S.answers).length} dari ${q2arr().length} soal dijawab. Yakin selesai?`,finishExam);}
+function renderQContent(){
+  const qArr=q2arr();const q=qArr[S.curQ];const a=S.answers[S.curQ];const susp=S.cheat.suspQ.includes(S.curQ);
+  el('examMain').innerHTML=`
+    <div class="enav">
+      ${qArr.map((_,i)=>{const ans=S.answers[i]!==undefined;const isSusp=S.cheat.suspQ.includes(i);let c=i===S.curQ?'qa':'';if(ans)c=isSusp?'qs':'qo';return`<button class="qdot ${c}" onclick="openQ(${i})">${i+1}</button>`;}).join('')}
+    </div>
+    <div class="qcard">
+      <div class="qmeta">
+        <span class="qnum">Soal ${S.curQ+1} / ${qArr.length}</span>
+        <span class="qtopic">${q.topic}</span>
+        <span class="chip" style="font-size:10px">${q.difficulty}</span>
+        ${susp?'<span class="badge bo" style="font-size:10px">Sangat cepat</span>':''}
+      </div>
+      <div class="qtext">${q.text}</div>
+      <div class="qopts">
+        ${q.options.map((o,oi)=>`
+          <div class="qopt ${a===oi?'sel':''}" onclick="selectAns(${oi})">
+            <span class="olet">${['A','B','C','D'][oi]}</span>
+            <span style="flex:1">${o.substring(3)}</span>
+            ${a===oi?'<div style="width:16px;height:16px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:7px;height:7px;border-radius:50%;background:currentColor"></div></div>':'<div style="width:16px;height:16px;border-radius:50%;border:2px solid currentColor;flex-shrink:0"></div>'}
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem">
+      <button class="btn btn-ghost" onclick="openQ(${Math.max(0,S.curQ-1)})" ${S.curQ===0?'disabled':''}>← Sebelumnya</button>
+      <span style="font-size:12px;color:var(--mu)">${Object.keys(S.answers).length}/${qArr.length} dijawab</span>
+      <button class="btn btn-blue" onclick="openQ(${Math.min(qArr.length-1,S.curQ+1)})" ${S.curQ===qArr.length-1?'disabled':''}>Berikutnya →</button>
+    </div>`;
+}
+function renderExamSide(){
+  const c=S.cheat;const rl=getRisk(c.risk);const al=Math.round(c.alertLevel);
+  const alc=al>=70?'var(--rd)':al>=40?'var(--or)':'var(--gn)';
+  const totInc=c.tab+c.copy+c.fast+c.gaze+c.head+c.phone+c.whisper;
+  el('examSide').innerHTML=`
+    <div>
+      <div style="font-size:10px;color:var(--mu);margin-bottom:7px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Kamera Pengawas</div>
+      <div class="camv" id="examCamWrap">
+        <video id="examCamera" autoplay muted playsinline style="display:none"></video>
+        <div class="cam-ol">
+          <div class="cgrid">${Array(9).fill('<div class="ccell"></div>').join('')}</div>
+          <div class="cn ctl"></div><div class="cn ctr"></div><div class="cn cbl"></div><div class="cn cbr"></div>
+        </div>
+        <div class="cam-ph"><div style="font-size:2rem;opacity:.2">📷</div><div>Memuat kamera...</div></div>
+        <div class="clbl" id="camLabel">${S.student.name}</div>
+        <div class="crec"><div class="recdot"></div>LIVE</div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:10px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Monitor</div>
+        <div class="plive ${c.risk>=40?'pl-warn':'pl-ok'}">
+          <div class="dp ${c.risk>=40?'dpr':'dpg'}" ${c.risk<40?'style="animation:pulse 2s infinite"':''}></div>
+          ${c.risk>=40?'Mencurigakan':'Normal'}
+        </div>
+      </div>
+      <div class="cbgrid">
+        <div class="cbox"><div class="cbval" id="cb-r" style="color:${rl.color}">${c.risk}</div><div class="cblbl">Skor Risiko</div></div>
+        <div class="cbox"><div class="cbval" id="cb-i" style="color:${totInc>0?'var(--or)':'var(--tx)'}">${totInc}</div><div class="cblbl">Insiden</div></div>
+        <div class="cbox"><div class="cbval" id="cb-t" style="color:${c.tab>0?'var(--rd)':'var(--tx)'}">${c.tab}</div><div class="cblbl">Pindah Tab</div></div>
+        <div class="cbox"><div class="cbval" id="cb-g" style="color:${c.gaze>0?'var(--or)':'var(--tx)'}">${c.gaze}</div><div class="cblbl">Lirik Layar</div></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:10px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Level Siaga</span>
+        <span style="font-size:11px;font-family:var(--mo);color:${alc}" id="cb-al">${al}%</span>
+      </div>
+      <div class="albar"><div class="alfill" id="alb" style="width:${al}%;background:${alc}"></div></div>
+      <div style="font-size:10px;color:var(--mu);margin-top:4px">${al>=70?'⚠ Sangat mencurigakan':al>=40?'Perlu perhatian':'Kondisi normal'}</div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--mu);margin-bottom:7px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Deteksi Fisik</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${[['Pandangan Menjauh',c.gaze,'or'],['Gerakan Kepala',c.head,'or'],['Deteksi Ponsel',c.phone,'rd'],['Gerakan Bibir',c.whisper,'rd'],['Earpiece',c.ear,'rd']].map(([l,v,col])=>`
+          <div style="display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:var(--mu2)">${l}</span>
+            <span style="font-family:var(--mo);font-weight:700;color:${v>0?`var(--${col})`:'var(--mu)'}">${v}×</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--mu);margin-bottom:7px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Log Aktivitas</div>
+      <div style="max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:3px" id="examLog">
+        ${c.log.length===0?'<div style="font-size:11px;color:var(--mu)">Tidak ada insiden...</div>':c.log.slice(0,12).map(e=>`<div class="iitem ${e.t==='c'?'ir':'io'}" style="border-radius:6px"><div class="itime">${e.time}</div><div class="imsg ${e.t==='c'?'crit':'wrn'}">${e.msg}</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+function selectAns(oi){
+  if(S.done)return;
+  const elapsed=(Date.now()-S.qStart)/1000;S.cheat.times.push(elapsed);
+  if(S.cheat.times.length>20)S.cheat.times.shift();
+  if(elapsed<3&&S.answers[S.curQ]===undefined){
+    S.cheat.fast++;S.cheat.consFast++;
+    if(!S.cheat.suspQ.includes(S.curQ))S.cheat.suspQ.push(S.curQ);
+    if(S.cheat.consFast>=3)examLog(`${S.cheat.consFast}× berturut sangat cepat!`,'c');
+    else examLog(`Soal ${S.curQ+1} dijawab ${elapsed.toFixed(1)}s`,'c');
+    calcRisk();
+  }else S.cheat.consFast=0;
+  if(S.answers[S.curQ]!==undefined&&S.answers[S.curQ]!==oi)examLog(`Soal ${S.curQ+1} jawaban diubah`,'w');
+  S.answers[S.curQ]=oi;renderQContent();updateMetrics();
+  // Push progres jawaban ke Firebase setiap 5 soal
+  if(Object.keys(S.answers).length%5===0)pushProgress();
+}
+async function pushProgress(){
+  if(!S.stuKey)return;
+  await dbUpdate(`students/${S.stuKey}`,{risk:S.cheat.risk,incidents:S.cheat.tab+S.cheat.copy+S.cheat.fast+S.cheat.gaze+S.cheat.head+S.cheat.phone+S.cheat.whisper+S.cheat.ear});
+  saveToLS();
+}
+function openQ(qi){S.curQ=qi;S.qStart=Date.now();renderQContent();}
+function examLog(msg,t='w'){const elapsed=S.startTime?Math.floor((Date.now()-S.startTime)/1000):0;S.cheat.log.unshift({time:fmt(elapsed),msg,t});if(S.cheat.log.length>60)S.cheat.log.pop();}
+function calcRisk(){
+  const c=S.cheat;let s=Math.min(c.tab*15,45)+Math.min(c.copy*10,30)+Math.min(c.fast*8,24)+Math.min(c.blur*10,30)+Math.min(c.gaze*6,36)+Math.min(c.head*8,32)+Math.min(c.phone*20,40)+Math.min(c.whisper*10,20)+Math.min(c.ear*15,30)+Math.min(c.burst*12,24);
+  c.risk=Math.min(Math.round(s),100);updateMetrics();
+  // Push insiden kritis ke Firebase
+  if(c.risk>=40&&c.log[0])addIncident(S.student.name,c.log[0].msg,c.risk>=70?'critical':'high');
+}
+function updateMetrics(){
+  const c=S.cheat;const rl=getRisk(c.risk);const al=Math.round(c.alertLevel);
+  const alc=al>=70?'var(--rd)':al>=40?'var(--or)':'var(--gn)';
+  const totInc=c.tab+c.copy+c.fast+c.gaze+c.head+c.phone+c.whisper;
+  const sv=(id,v,col)=>{const e=el(id);if(e){e.textContent=v;if(col)e.style.color=col;}};
+  sv('cb-r',c.risk,rl.color);sv('cb-i',totInc,totInc>0?'var(--or)':'var(--tx)');
+  sv('cb-t',c.tab,c.tab>0?'var(--rd)':'var(--tx)');sv('cb-g',c.gaze,c.gaze>0?'var(--or)':'var(--tx)');
+  sv('cb-al',al+'%',alc);const alb=el('alb');if(alb){alb.style.width=al+'%';alb.style.background=alc;}
+  const rb=el('eRiskBadge');if(rb){rb.className=`badge b${rl.cls}`;rb.textContent=c.risk>=40?`Risiko ${rl.label}`:'Aman';}
+  const logEl=el('examLog');if(logEl){logEl.innerHTML=c.log.length===0?'<div style="font-size:11px;color:var(--mu)">Tidak ada insiden...</div>':c.log.slice(0,12).map(e=>`<div class="iitem ${e.t==='c'?'ir':'io'}" style="border-radius:6px"><div class="itime">${e.time}</div><div class="imsg ${e.t==='c'?'crit':'wrn'}">${e.msg}</div></div>`).join('');}
+  if(c.risk>=40)toast(`Peringatan: Risiko ${c.risk}/100!`,'warning');
+}
+
+// ════════════════════════════════
+// DETEKSI
+// ════════════════════════════════
+function setupDetection(){
+  document.addEventListener('visibilitychange',onVis);window.addEventListener('blur',onBlur);
+  document.addEventListener('copy',onCopy);document.addEventListener('cut',onCopy);
+  document.addEventListener('contextmenu',onRClick);document.addEventListener('keydown',onKey);
+  document.addEventListener('mousemove',()=>S.cheat.lastActive=Date.now());
+  S.inactTimer=setInterval(()=>{if(S.done)return;const idle=(Date.now()-S.cheat.lastActive)/1000;if(idle>=30){S.cheat.inact+=5;if(idle%30<6){examLog(`Tidak aktif ${Math.round(idle)}s`,'w');calcRisk();}}},5000);
+  startGaze();startBehav();
+}
+function onVis(){if(document.hidden&&!S.done){S.cheat.tab++;examLog(`Pindah tab ke-${S.cheat.tab}`,'c');calcRisk();if(S.cheat.tab>=3)toast('Peringatan! Pindah tab berulang kali','danger');}}
+function onBlur(){if(!S.done){S.cheat.blur++;examLog('Jendela kehilangan fokus','w');calcRisk();}}
+function onCopy(){if(!S.done){S.cheat.copy++;examLog('Salin/potong teks','c');calcRisk();}}
+function onRClick(e){if(!S.done){e.preventDefault();examLog('Klik kanan diblokir','w');}}
+function onKey(e){if(S.done)return;if((e.ctrlKey||e.metaKey)&&['c','v','x','a','p','s'].includes(e.key)){S.cheat.copy++;examLog(`Shortcut Ctrl+${e.key.toUpperCase()}`,'c');calcRisk();}if(e.key==='PrintScreen'){examLog('Tangkap layar','c');calcRisk();}}
+let gazeInt=null,behavInt=null;
+function startGaze(){
+  gazeInt=setInterval(()=>{
+    if(S.done)return;const r=Math.random();
+    if(r<.045){S.cheat.gaze++;S.cheat.alertLevel=Math.min(S.cheat.alertLevel+14,100);examLog('Pandangan menjauh dari layar','w');calcRisk();}
+    else if(r<.075){S.cheat.head++;S.cheat.alertLevel=Math.min(S.cheat.alertLevel+10,100);examLog('Gerakan kepala ke samping','w');calcRisk();}
+    else if(r<.09){S.cheat.whisper++;S.cheat.alertLevel=Math.min(S.cheat.alertLevel+12,100);examLog('Gerakan bibir / berbisik','c');calcRisk();toast('Gerakan bibir terdeteksi!','warning');}
+    else if(r<.105){S.cheat.phone++;S.cheat.alertLevel=Math.min(S.cheat.alertLevel+25,100);examLog('Ponsel di area kamera','c');calcRisk();toast('PERINGATAN: Ponsel terdeteksi!','danger');}
+    else if(r<.115){S.cheat.ear++;S.cheat.alertLevel=Math.min(S.cheat.alertLevel+18,100);examLog('Indikasi earpiece','c');calcRisk();}
+    else S.cheat.alertLevel=Math.max(S.cheat.alertLevel-4,0);
+    updateMetrics();
+  },4000);
+}
+function startBehav(){
+  behavInt=setInterval(()=>{if(S.done)return;const r=S.cheat.times.slice(-5);if(r.length>=4&&r.filter(t=>t<4).length>=3){S.cheat.burst++;examLog('Burst: jawaban sangat cepat','c');calcRisk();}},12000);
+}
+function stopDetection(){
+  document.removeEventListener('visibilitychange',onVis);window.removeEventListener('blur',onBlur);
+  document.removeEventListener('copy',onCopy);document.removeEventListener('cut',onCopy);
+  document.removeEventListener('contextmenu',onRClick);document.removeEventListener('keydown',onKey);
+  if(gazeInt)clearInterval(gazeInt);if(behavInt)clearInterval(behavInt);if(S.inactTimer)clearInterval(S.inactTimer);
+  stopCamera();
+}
+function startTimer(){
+  S.timerInt=setInterval(()=>{
+    S.timeLeft--;const te=el('etimer');if(te)te.textContent=fmt(S.timeLeft);
+    if(S.timeLeft<=300&&S.timeLeft%60===0)toast(`Sisa waktu: ${fmt(S.timeLeft)}`,'warning');
+    if(S.timeLeft<=0){clearInterval(S.timerInt);finishExam();}
+  },1000);
+}
+async function finishExam(){
+  if(S.done)return;S.done=true;clearInterval(S.timerInt);stopDetection();
+  const qArr=q2arr();
+  let correct=0;qArr.forEach((q,i)=>{if(S.answers[i]===q.correct)correct++;});
+  const pct=Math.round((correct/qArr.length)*100);
+  const dur=Math.floor((Date.now()-S.startTime)/1000);
+  const totInc=S.cheat.tab+S.cheat.copy+S.cheat.fast+S.cheat.gaze+S.cheat.head+S.cheat.phone+S.cheat.whisper+S.cheat.ear;
+  // Simpan hasil
+  if(S.stuKey){
+    await dbUpdate(`students/${S.stuKey}`,{status:'selesai',score:pct,risk:S.cheat.risk,incidents:totInc,duration:fmt(dur),flagged:S.cheat.risk>=(cache.settings?.maxRisk||70)});
+    saveToLS();
+  }
+  renderResult({correct,total:qArr.length,pct},dur);showPage('result');
+}
+function renderResult(sc,dur){
+  const g=getGrade(sc.pct);const rl=getRisk(S.cheat.risk);
+  const totInc=S.cheat.tab+S.cheat.copy+S.cheat.fast+S.cheat.gaze+S.cheat.head+S.cheat.phone+S.cheat.whisper+S.cheat.ear+S.cheat.burst;
+  const sc2=sc.pct>=70?'var(--gn)':sc.pct>=60?'var(--or)':'var(--rd)';
+  el('resultBody').innerHTML=`
+    <div class="rhero">
+      <div style="font-size:12px;color:var(--mu);margin-bottom:1.25rem">Ujian Selesai · ${S.student.name} · ${fmt(dur)}</div>
+      <div class="scircle">
+        <svg class="sring" viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r="70" fill="none" stroke="var(--sf2)" stroke-width="12"/>
+          <circle cx="80" cy="80" r="70" fill="none" stroke="${sc2}" stroke-width="12" stroke-dasharray="${Math.round(sc.pct/100*440)} 440" stroke-linecap="round" transform="rotate(-90 80 80)"/>
+        </svg>
+        <div class="sinner"><div class="sval" style="color:${sc2}">${sc.pct}</div><div class="smax">/ 100</div></div>
+      </div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${S.student.name}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:2rem">
+        <span class="badge b${g.c}">Nilai ${g.g} — ${g.l}</span>
+        <span class="badge b${rl.cls}">Risiko ${rl.label} (${S.cheat.risk}/100)</span>
+        ${S.cheat.risk>=40?'<span class="badge br">⚠ Perlu Validasi</span>':''}
+      </div>
+    </div>
+    <div style="max-width:900px;margin:0 auto;padding:0 2rem 3rem">
+      ${S.cheat.risk>=40?`<div class="alert alr" style="margin-bottom:1.5rem"><span>⚠</span><div><strong>Hasil telah disimpan ke database.</strong> Terdeteksi ${totInc} insiden. Risiko ${S.cheat.risk}/100. Pengawas dapat memverifikasi hasilnya secara real-time.</div></div>`:'<div class="alert alg" style="margin-bottom:1.5rem"><span>✓</span><div>Hasil ujian telah tersimpan otomatis ke database dan dapat dilihat pengawas secara real-time.</div></div>'}
+      <div class="g4" style="margin-bottom:2rem">
+        <div class="scard sc-g"><div class="slbl">Benar</div><div class="snum" style="color:var(--gn)">${sc.correct}</div></div>
+        <div class="scard sc-r"><div class="slbl">Salah</div><div class="snum" style="color:var(--rd)">${sc.total-sc.correct}</div></div>
+        <div class="scard sc-b"><div class="slbl">Durasi</div><div class="snum" style="color:var(--ac)">${fmt(dur)}</div></div>
+        <div class="scard sc-o"><div class="slbl">Insiden</div><div class="snum" style="color:${totInc>0?'var(--or)':'var(--gn)'}">${totInc}</div></div>
+      </div>
+      <div class="g2" style="margin-bottom:2rem">
+        <div class="card">
+          <div class="ctitle">Laporan Kecurangan</div>
+          ${[['Pindah Tab',S.cheat.tab,'r'],['Salin/Shortcut',S.cheat.copy,'r'],['Jawaban Cepat',S.cheat.fast,'o'],['Burst Jawaban',S.cheat.burst,'r'],['Pandangan Menjauh',S.cheat.gaze,'o'],['Gerakan Kepala',S.cheat.head,'o'],['Gerakan Bibir',S.cheat.whisper,'r'],['Ponsel Terdeteksi',S.cheat.phone,'r'],['Earpiece',S.cheat.ear,'r']].map(([l,c,col])=>`
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)">
+              <span style="font-size:13px;color:var(--mu2)">${l}</span>
+              <span class="badge b${c>0?col:'x'}">${c}×</span>
+            </div>`).join('')}
+          <div style="display:flex;justify-content:space-between;padding:11px 0"><span style="font-size:13px;font-weight:600">Skor Risiko</span><span style="font-size:18px;font-weight:800;font-family:var(--mo);color:${rl.color}">${S.cheat.risk}/100</span></div>
+        </div>
+        <div class="card">
+          <div class="ctitle">Kunci Jawaban</div>
+          <div style="max-height:380px;overflow-y:auto">
+            ${q2arr().map((q,i)=>{const ua=S.answers[i];const ok=ua===q.correct;const sp=S.cheat.suspQ.includes(i);return`
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bd)">
+                <div><span style="font-size:12px;color:var(--mu2)">Soal ${i+1}</span>${sp?'<span class="badge bo" style="margin-left:5px;font-size:10px">Cepat</span>':''}<div style="font-size:10px;color:var(--mu)">${q.topic}</div></div>
+                <div style="display:flex;align-items:center;gap:7px">
+                  <span style="font-size:11px;color:var(--mu);font-family:var(--mo)">${ua!==undefined?q.options[ua].charAt(0):'-'}</span>
+                  <span class="badge ${ok?'bg':'br'}">${ok?'✓':'✗'} ${q.options[q.correct].charAt(0)}</span>
+                </div>
+              </div>`;}).join('')}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-blue btn-lg" onclick="showPage('landing')">← Beranda</button>
+        <button class="btn btn-ghost btn-lg" onclick="showPage('loginStudent')">Ujian Lagi</button>
+      </div>
+    </div>`;
+}
+window.renderExamPage=renderExamPage;window.confirmFinish=confirmFinish;window.selectAns=selectAns;window.openQ=openQ;
+
+// ════════════════════════════════
+// EXPOSE GLOBALS
+// ════════════════════════════════
+window.showPage=showPage;window.om=om;window.cm=cm;window.tpwd=tpwd;window.confirm2=confirm2;
+window.el=el;window.anav=anav;window.toast=toast;
+window.rDash=rDash;window.rMon=rMon;window.rRes=rRes;window.rSoal=rSoal;window.rPes=rPes;window.rRep=rRep;window.rSet=rSet;
+window.showDetail=showDetail;window.openProfil=openProfil;window.openEditAdmin=openEditAdmin;
+
+</script>
+
+<!-- PANDUAN AKUN DEFAULT -->
+<div id="setupGuide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;overflow-y:auto">
+  <div style="max-width:660px;width:92%;margin:2rem auto;background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r2);padding:2.5rem">
+    <div style="font-size:22px;font-weight:700;margin-bottom:.5rem">⚡ KoesExamGuard — Siap Digunakan!</div>
+    <div style="font-size:13px;color:var(--mu2);margin-bottom:1.5rem">Sistem berjalan di mode lokal (localStorage). Data tersimpan di browser ini. Untuk multi-device aktifkan Firebase di bagian bawah.</div>
+    
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+      <div style="background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);border-radius:var(--r);padding:16px">
+        <div style="font-weight:700;color:var(--ac);margin-bottom:10px">🛡 Akun Admin</div>
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="font-size:11px;color:var(--mu)"><th style="text-align:left;padding:4px 8px">Username</th><th style="text-align:left;padding:4px 8px">Password</th><th style="text-align:left;padding:4px 8px">Jabatan</th></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">admin</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">admin123</td><td style="padding:6px 8px;color:var(--mu2)">Superadmin</td></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">pengawas</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">watch456</td><td style="padding:6px 8px;color:var(--mu2)">Pengawas</td></tr>
+        </table>
+      </div>
+      <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:var(--r);padding:16px">
+        <div style="font-weight:700;color:var(--gn);margin-bottom:10px">📝 Akun Peserta Demo</div>
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="font-size:11px;color:var(--mu)"><th style="text-align:left;padding:4px 8px">No. Peserta</th><th style="text-align:left;padding:4px 8px">Password</th><th style="text-align:left;padding:4px 8px">Nama</th></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">2024-001</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">budi123</td><td style="padding:6px 8px;color:var(--mu2)">Budi Santoso</td></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">2024-002</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">siti456</td><td style="padding:6px 8px;color:var(--mu2)">Siti Rahayu</td></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">2024-003</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">ahmad789</td><td style="padding:6px 8px;color:var(--mu2)">Ahmad Fajar</td></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">2024-004</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">dewi321</td><td style="padding:6px 8px;color:var(--mu2)">Dewi Lestari</td></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">2024-005</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">reza654</td><td style="padding:6px 8px;color:var(--mu2)">Reza Pratama</td></tr>
+          <tr><td style="padding:6px 8px;font-family:monospace;font-weight:700;color:var(--tx)">2024-006</td><td style="padding:6px 8px;font-family:monospace;color:var(--gn)">fitri987</td><td style="padding:6px 8px;color:var(--mu2)">Fitri Handayani</td></tr>
+        </table>
+      </div>
+      <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;font-size:12px;color:var(--mu2);line-height:1.8">
+        <strong style="color:var(--tx)">💡 Tips:</strong> Semua akun dapat diubah/ditambah dari panel Admin → Pengaturan. Data tersimpan otomatis di browser. Untuk multi-device aktifkan Firebase di kode (FIREBASE_CONFIG).
+      </div>
+    </div>
+    <div style="margin-top:1.5rem;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-blue" onclick="el('setupGuide').style.display='none';localStorage.setItem('eg_guide_seen','1')">Mengerti, mulai sekarang →</button>
+      <button class="btn btn-ghost" onclick="el('setupGuide').style.display='none'">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tampilkan panduan jika baru pertama kali buka (dimatikan agar password tidak tampil di login dashboard)
+window.addEventListener('load', () => {
+  localStorage.setItem('eg_guide_seen', '1');
+});
+</script>
+</body>
+</html>
